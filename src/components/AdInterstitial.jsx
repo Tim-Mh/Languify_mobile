@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import Animated, { FadeIn } from 'react-native-reanimated'
 import ImageOff from 'lucide-react-native/icons/image-off'
 
 import Button from './Button'
@@ -72,18 +71,28 @@ export default function AdInterstitial({ ad, seconds = 10, onContinue }) {
             <ImageOff size={40} color={colors.secondary[300]} strokeWidth={1.6} />
           </View>
         ) : (
-          <Animated.View entering={FadeIn.duration(220)} style={StyleSheet.absoluteFill}>
-            {/* The fade is the wrapping Animated.View's, so there is no
-                cross-fade prop to replace here — it was always doing the same
-                job twice. */}
-            <Image
-              source={{ uri: ad.url }}
-              style={StyleSheet.absoluteFill}
-              resizeMode="contain"
-              onError={() => setFailed(true)}
-              accessibilityIgnoresInvertColors
-            />
-          </Animated.View>
+          /*
+           * Rendered directly, with no entering animation around it.
+           *
+           * It used to sit inside an `Animated.View entering={FadeIn}`, which
+           * meant the creative was only visible once that animation had run. A
+           * layout animation on a view mounted by a whole-screen swap — which
+           * is what this is, the player early-returns straight to the
+           * interstitial — does not reliably fire, and when it does not the
+           * view is left at its starting opacity of zero. The result was an
+           * empty screen with the AD tag, the sponsor line and an enabled
+           * Continue button drawn over it, and no error anywhere, because the
+           * image had loaded perfectly well and simply could not be seen.
+           *
+           * A fade is not worth a creative that sometimes fails to appear.
+           */
+          <Image
+            source={{ uri: ad.url }}
+            style={StyleSheet.absoluteFill}
+            resizeMode="contain"
+            onError={() => setFailed(true)}
+            accessibilityIgnoresInvertColors
+          />
         )}
       </Pressable>
 
