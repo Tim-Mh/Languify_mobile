@@ -4,12 +4,19 @@ import api from './client'
  * Tells the backend where to reach this device.
  *
  * Called on every launch of a signed-in session rather than only when the token
- * changes: Expo can reissue a token after an app update or a restore onto a new
- * phone, and the client has no reliable way to notice. The backend treats this
- * as an upsert keyed on the token, so repeat calls are free.
+ * changes: FCM can reissue a token after an app update, a restore onto a new
+ * phone, or a data clear, and the client has no reliable way to notice. The
+ * backend treats this as an upsert keyed on the token, so repeat calls are free.
+ *
+ * **`provider` is not optional.** The backend defaults a registration with no
+ * provider to `expo`, because the Expo builds predate the field, and then
+ * validates the token against `ExponentPushToken[...]`. Sending a raw FCM token
+ * without saying so is therefore a 422, and because enrolment is fire and
+ * forget the app shows nothing at all — the device simply never appears in
+ * `device_tokens` and no push is ever delivered to it.
  */
-export function registerDevice({ token, platform }) {
-  return api.post('/device-tokens', { token, platform })
+export function registerDevice({ token, platform, provider }) {
+  return api.post('/device-tokens', { token, platform, provider })
 }
 
 /**

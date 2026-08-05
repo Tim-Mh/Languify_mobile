@@ -1,97 +1,128 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# Languify Mobile
 
-# Getting Started
+The Languify learner app: a bare **React Native 0.85** project, ported from the
+Expo SDK 56 build in `Linguispath-Mobile`. Third repo in the LinguisPath project
+alongside `Linguispath-web` (React SPA) and `Linguispath-backend` (Laravel API).
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+There is no Expo here. No `expo` package, no Expo Go, no EAS, no config plugins,
+no prebuild. `android/` and `ios/` are checked in and are the source of truth for
+native configuration.
 
-## Step 1: Start Metro
+Read `CLAUDE.md` before changing navigation, fonts, push or the avatar editor. It
+documents the decisions that are not obvious from the code.
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+## Prerequisites
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+| | |
+| --- | --- |
+| Node | 22.11 or newer |
+| JDK | 17 |
+| Android SDK | compileSdk 36, build-tools 36.0.0, NDK 27.1.12297006 |
+| Xcode | iOS only, macOS only |
 
-```sh
-# Using npm
-npm start
+`ANDROID_HOME` must point at your SDK. Android Studio sets that up for you.
 
-# OR using Yarn
-yarn start
+## Setup
+
+```bash
+npm install
+cp .env.example .env
 ```
 
-## Step 2: Build and run your app
+That is enough to build against the production API. Two things worth knowing:
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+- **`npm install` runs `patch-package` automatically.** `react-native-tts` ships
+  a `build.gradle` that calls `jcenter()`, pins AGP 1.3.1 from 2015, declares no
+  `namespace`, and uses the legacy manifest `package` attribute. Gradle 9 and
+  AGP 8 reject all of that. `patches/react-native-tts+4.1.1.patch` fixes it and
+  the Android build fails without it, so never install with `--ignore-scripts`.
+- **`google-services.json` is committed**, deliberately. The Firebase Gradle
+  plugin fails without it, and its contents ship inside every APK anyway, so it
+  is not a secret. `.env` is *not* committed.
 
-### Android
+Leave every value in `.env` blank for a production build. Setting `API_URL` to a
+loopback address points the app at a local backend, and `src/api/client.js`
+rewrites `localhost` to whatever host Metro is served from, so an emulator and a
+physical device both reach your machine without editing anything.
 
-```sh
-# Using npm
-npm run android
+## Run it in development
 
-# OR using Yarn
-yarn android
+```bash
+npm start          # Metro, in its own terminal
+npm run android    # build, install and launch
 ```
 
-### iOS
+## Build an APK
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
-
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
-
-```sh
-bundle install
+```bash
+cd android
+./gradlew assembleRelease
 ```
 
-Then, and every time you update your native dependencies, run:
+Output lands at `android/app/build/outputs/apk/release/app-release.apk`.
 
-```sh
-bundle exec pod install
+For a debug APK with the dev menu and Metro reload:
+
+```bash
+./gradlew assembleDebug
+# android/app/build/outputs/apk/debug/app-debug.apk
 ```
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+**Expect the first build to take 10 minutes or more.** It compiles native code
+for four architectures. While iterating, build just one:
 
-```sh
-# Using npm
+```bash
+./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a
+```
+
+That covers every modern phone. Ship all four.
+
+> **Release signing still uses the debug keystore**, as the React Native template
+> ships it. Fine for internal testing and side-loading, not for Play. Generate a
+> real keystore and wire it into `android/app/build.gradle` before any store
+> submission.
+
+## Build for iOS
+
+Requires macOS.
+
+```bash
+cd ios && pod install && cd ..
 npm run ios
-
-# OR using Yarn
-yarn ios
 ```
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+iOS has never been compiled. Everything is authored — bundle id, entitlements for
+Sign in with Apple and push, the URL scheme, an `AppDelegate` wired for Firebase
+and the splash handoff — but expect to work through CocoaPods and Firebase
+linkage on the first run. iOS push additionally needs a Firebase iOS app, which
+does not exist yet: `google-services.json` has zero iOS clients, so there is no
+`GoogleService-Info.plist`, and `FirebaseApp.configure()` will trap on launch
+without one.
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+## Checking a change quickly
 
-## Step 3: Modify your app
+Bundling catches every import and syntax error in seconds and needs no device:
 
-Now that you have successfully run the app, let's make changes!
+```bash
+npm run bundle:android
+```
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+It will not catch a wrong native module version, a missing permission or a Gradle
+incompatibility. Only a real build does that.
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+## Push notifications
 
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
+The app registers an **FCM** token and posts it to `/device-tokens` with
+`provider: 'fcm'`. The backend still accepts Expo-shaped tokens from the old
+builds alongside these and routes each to the service that understands it.
 
-## Congratulations! :tada:
+Enrolment is deliberately fire and forget, so a broken push setup looks like
+silence rather than an error. Two ways that happens:
 
-You've successfully run and modified your React Native App. :partying_face:
+- A registration sent **without** `provider` is defaulted to `expo` server-side
+  and then validated against `ExponentPushToken[...]`, so a raw FCM token 422s
+  and the device never appears in `device_tokens`.
+- Emulators are never issued a push token. Test on a physical device.
 
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+If a device is not receiving push, check the `device_tokens` table on the server
+first. No row means registration failed, and the app will not have told you.
