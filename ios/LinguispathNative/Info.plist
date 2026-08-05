@@ -6,7 +6,6 @@
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
-	<!-- The name under the icon on the home screen. -->
 	<key>CFBundleDisplayName</key>
 	<string>Languify</string>
 	<key>CFBundleExecutable</key>
@@ -23,17 +22,6 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
-	<key>CFBundleVersion</key>
-	<string>$(CURRENT_PROJECT_VERSION)</string>
-	<!--
-		The app's own scheme. The OAuth redirect comes back on `languify://oauth`
-		— the backend is handed that as `appRedirect` and sends the browser
-		there with the token on the query string.
-
-		Adding native Google sign-in later means adding a second entry here, for
-		the reversed iOS client id (`com.googleusercontent.apps.…`), which is
-		how Google's SDK gets its own callback back.
-	-->
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -44,42 +32,50 @@
 				<string>languify</string>
 			</array>
 		</dict>
+		<!-- Native Google Sign-In's return leg: the SDK bounces through this
+		     reversed form of GOOGLE_IOS_CLIENT_ID (.env) to get back into the
+		     app. Both change together or neither. -->
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>google-signin</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.353394703762-74i6ejkg31bakpvhlnongtn4v3uslm8u</string>
+			</array>
+		</dict>
 	</array>
+	<key>CFBundleVersion</key>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
 		<false/>
-		<!--
-			Lets a debug build reach a backend on the development machine over
-			plain http. Production is https, so nothing else is relaxed.
-		-->
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
-	<key>UILaunchStoryboardName</key>
-	<string>BootSplash</string>
-	<!--
-		Wakes the app when a push arrives so Firebase can hand it to the JS
-		handler. Without this, a notification tapped from a cold start still
-		works, but a data-only message delivered in the background never
-		reaches `setBackgroundMessageHandler`.
-	-->
+	<key>RCTNewArchEnabled</key>
+	<true/>
+	<key>UIAppFonts</key>
+	<array>
+		<string>Nunito-Bold.ttf</string>
+		<string>Nunito-Regular.ttf</string>
+		<string>Nunito-SemiBold.ttf</string>
+		<string>Poppins-Bold.ttf</string>
+		<string>Poppins-Medium.ttf</string>
+		<string>Poppins-SemiBold.ttf</string>
+	</array>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>
 	</array>
+	<key>UILaunchStoryboardName</key>
+	<string>BootSplash</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
 		<string>arm64</string>
 	</array>
-	<!--
-		Portrait everywhere, including iPad, matching the Expo build's
-		`"orientation": "portrait"`. Every screen here is a single column laid
-		out against a portrait phone; the tablet gets the same layout centred
-		and capped rather than a landscape one.
-	-->
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
@@ -91,14 +87,5 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-	<key>UIAppFonts</key>
-	<array>
-		<string>Nunito-Bold.ttf</string>
-		<string>Nunito-Regular.ttf</string>
-		<string>Nunito-SemiBold.ttf</string>
-		<string>Poppins-Bold.ttf</string>
-		<string>Poppins-Medium.ttf</string>
-		<string>Poppins-SemiBold.ttf</string>
-	</array>
 </dict>
 </plist>

@@ -14,6 +14,11 @@ prepare_react_native_project!
 # is compiled.
 $RNFirebaseAsStaticFramework = true
 
+# react-native-firebase v26 resolves the Firebase SDK through Swift Package
+# Manager by default, and SPM only ships dynamic products — incompatible with
+# the static frameworks above. Opting out keeps Firebase coming from CocoaPods.
+$RNFirebaseDisableSPM = true
+
 linkage = ENV['USE_FRAMEWORKS']
 if linkage != nil
   Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
@@ -22,6 +27,11 @@ end
 
 target 'LinguispathNative' do
   config = use_native_modules!
+
+  # Swift pods (FirebaseCoreInternal, AppCheckCore) import these Obj-C pods,
+  # which only works as static libraries if they generate module maps.
+  pod 'GoogleUtilities', :modular_headers => true
+  pod 'RecaptchaInterop', :modular_headers => true
 
   use_react_native!(
     :path => config[:reactNativePath],

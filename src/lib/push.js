@@ -1,6 +1,11 @@
 import { Platform } from 'react-native'
 import notifee, { AndroidImportance } from '@notifee/react-native'
-import messaging from '@react-native-firebase/messaging'
+import {
+  getMessaging,
+  getToken,
+  isDeviceRegisteredForRemoteMessages,
+  registerDeviceForRemoteMessages,
+} from '@react-native-firebase/messaging'
 import DeviceInfo from 'react-native-device-info'
 
 /**
@@ -173,11 +178,11 @@ export async function register() {
     // iOS mints an APNs token first and Firebase exchanges it for an FCM one.
     // Asking for the FCM token before that has happened returns an error rather
     // than waiting, so registration is awaited explicitly.
-    if (Platform.OS === 'ios' && !messaging().isDeviceRegisteredForRemoteMessages) {
-      await messaging().registerDeviceForRemoteMessages()
+    if (Platform.OS === 'ios' && !isDeviceRegisteredForRemoteMessages(getMessaging())) {
+      await registerDeviceForRemoteMessages(getMessaging())
     }
 
-    const token = await messaging().getToken()
+    const token = await getToken(getMessaging())
 
     if (!token) return null
 

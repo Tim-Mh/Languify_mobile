@@ -1,4 +1,4 @@
-import messaging from '@react-native-firebase/messaging'
+import { getMessaging, setBackgroundMessageHandler } from '@react-native-firebase/messaging'
 import notifee from '@notifee/react-native'
 
 import { CHANNELS, messageContent } from './push'
@@ -29,7 +29,7 @@ function channelFor(message) {
   return CHANNEL_IDS.includes(requested) ? requested : 'default'
 }
 
-messaging().setBackgroundMessageHandler(async (message) => {
+setBackgroundMessageHandler(getMessaging(), async (message) => {
   const { title, body } = messageContent(message)
 
   // Nothing to show. A data-only message with no text is a signal to the app

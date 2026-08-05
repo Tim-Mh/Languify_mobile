@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useRef } from 'react'
 import { useMutation } from '@tanstack/react-query'
-import messaging from '@react-native-firebase/messaging'
+import {
+  getInitialNotification,
+  getMessaging,
+  onMessage,
+  onNotificationOpenedApp,
+} from '@react-native-firebase/messaging'
 import { useRouter } from '@/navigation'
 
 import { registerDevice } from '../api/push'
@@ -94,7 +99,7 @@ export function PushProvider({ children }) {
   // reads as broken. The app's own toast is shown instead, so a push matches
   // every other in-app message rather than pasting a system banner over the UI.
   useEffect(() => {
-    return messaging().onMessage((message) => {
+    return onMessage(getMessaging(), (message) => {
       const { title, body } = messageContent(message)
 
       if (body) notify.info(body, { title: title ?? undefined })
@@ -103,7 +108,7 @@ export function PushProvider({ children }) {
 
   // Tapped while the app was backgrounded but still running.
   useEffect(() => {
-    return messaging().onNotificationOpenedApp(openTarget)
+    return onNotificationOpenedApp(getMessaging(), openTarget)
   }, [openTarget])
 
   // Tapped while the app was closed. The message is waiting rather than
@@ -115,8 +120,7 @@ export function PushProvider({ children }) {
 
     handledColdStart.current = true
 
-    messaging()
-      .getInitialNotification()
+    getInitialNotification(getMessaging())
       .then((message) => {
         if (message) openTarget(message)
       })

@@ -72,28 +72,28 @@ Expo names (`Poppins_700Bold`) would render on Android and silently fall back to
 the system font on iOS. If you add a weight, check the name inside the file
 rather than trusting the filename.
 
-## Push notifications — needs a backend change
+## Push notifications
 
 The Expo build issued an *Expo* push token and the backend posted it to
 `exp.host`, which fanned out to FCM and APNs and held both sets of credentials.
 There is no Expo push service in a bare app, so `src/lib/push.js` issues the
-underlying **FCM registration token** instead.
+underlying **FCM registration token** instead, registered with
+`provider: 'fcm'`.
 
-Two things in `Linguispath-backend` have to change to match. Until they do, the
-app registers but never receives anything:
-
-1. `DeviceTokenController::TOKEN_PATTERN` only accepts `ExponentPushToken[…]`,
-   so `POST /device-tokens` 422s on an FCM token.
-2. `ExpoPushService` posts to `https://exp.host/--/api/v2/push/send`, which only
-   understands Expo tokens. It needs to send through FCM's HTTP v1 API using a
-   service account key on the server.
-
-The client sends `provider: 'fcm'` with the registration so both kinds of token
-can coexist in the table during the migration.
+The backend (`languify_backend_Tim`) accepts both token kinds:
+`DeviceTokenController` validates each against its own pattern, the
+`device_tokens` table carries a `provider` column, and `ExpoChannel` routes
+each token to its service — Expo-wrapped ones through `ExpoPushService`,
+raw FCM ones through `FcmPushService` (FCM HTTP v1). The FCM path needs
+`FIREBASE_CREDENTIALS` in the backend `.env` pointing at a Firebase service
+account key file; without it FCM sends are skipped with a log line.
 
 **iOS push also needs Firebase setup that does not exist yet**: the Firebase
-project has no iOS app, so there is no `GoogleService-Info.plist`, and the APNs
-key that was uploaded to Expo needs uploading to Firebase instead.
+project has no iOS app, so `ios/LinguispathNative/GoogleService-Info.plist` is
+a clearly-marked placeholder (real project values, fake app id) that only
+exists so `FirebaseApp.configure()` can succeed. When the iOS app is
+registered in the Firebase console, replace it with the downloaded file and
+upload the APNs key (`Languify_Keys/AuthKey_UX7BRA85KJ.p8`) to Firebase.
 
 ## Avatars
 
