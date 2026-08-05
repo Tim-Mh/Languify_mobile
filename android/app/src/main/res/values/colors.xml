@@ -1,0 +1,13 @@
+<resources>
+    <color name="bootsplash_background">#fff8fc</color>
+
+    <!--
+      Brand pink, used to tint the status-bar notification icon. Android paints
+      the whole silhouette with this, so it has to read against both a light and
+      a dark status bar.
+    -->
+    <color name="notification_color">#e040a0</color>
+
+    <!-- The adaptive launcher icon's background layer, per the Expo build. -->
+    <color name="ic_launcher_background">#613f88</color>
+</resources>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!--
+		Sign in with Apple. Apple requires this on any app that offers a
+		third-party sign-in, which this one does (Google), so it is not
+		optional. Matches the Expo build's `ios.usesAppleSignIn`.
+
+		The capability also has to be enabled on the App ID in the Apple
+		Developer portal; this file alone is not enough, and a mismatch fails at
+		signing time rather than at runtime.
+	-->
+	<key>com.apple.developer.applesignin</key>
+	<array>
+		<string>Default</string>
+	</array>
+
+	<!--
+		Push. `development` is correct for debug builds and for TestFlight;
+		Xcode rewrites it to `production` when archiving for the App Store, so
+		this value does not need changing by hand.
+	-->
+	<key>aps-environment</key>
+	<string>development</string>
+</dict>
+</plist>

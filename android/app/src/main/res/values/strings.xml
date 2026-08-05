@@ -1,0 +1,7 @@
+<resources>
+    <!--
+      The name under the launcher icon. Kept as the Expo build's `name`, not the
+      project folder's name — this is the only one a learner ever reads.
+    -->
+    <string name="app_name">Languify</string>
+</resources>
