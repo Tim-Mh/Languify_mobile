@@ -8,16 +8,32 @@ import Sound from 'react-native-sound'
  * WAV files (see scratchpad/gen-sounds.js) and are shipped as assets. Same
  * notes, same envelopes, so a lesson sounds identical on both products.
  *
+ * ---
+ *
+ * **These are native resources, not Metro assets, and that is load-bearing.**
+ *
+ * `react-native-sound` takes a filename and does `filename.startsWith("http")`
+ * on it. `require('...wav')` returns a *number* in React Native — the asset
+ * registry id — so handing it one throws `filename.startsWith is not a
+ * function` inside the constructor. That throw was caught by the guard in
+ * `play()` and swallowed, which left the entire app silent with nothing in the
+ * logs to say why.
+ *
+ * So the files are linked natively instead (see `react-native.config.js`) and
+ * referenced by name. `Sound.MAIN_BUNDLE` is the bundle path on iOS and an
+ * empty string on Android, where the library then strips the extension and
+ * lowercases the name to find it in `res/raw`. One call works on both.
+ *
  * Players are created once and reused. Creating one per playback leaks native
  * audio sessions, and on Android you hear the effects start to lag and then cut
  * out entirely after a few dozen answers.
  */
 const FILES = {
-  click: require('@assets/sounds/click.wav'),
-  select: require('@assets/sounds/select.wav'),
-  correct: require('@assets/sounds/correct.wav'),
-  incorrect: require('@assets/sounds/incorrect.wav'),
-  complete: require('@assets/sounds/complete.wav'),
+  click: 'click.wav',
+  select: 'select.wav',
+  correct: 'correct.wav',
+  incorrect: 'incorrect.wav',
+  complete: 'complete.wav',
 }
 
 const players = {}
@@ -58,7 +74,7 @@ function configure() {
  * retried, so `play` simply finds nothing and stays quiet.
  */
 function loadPlayer(name) {
-  return new Sound(FILES[name], (error) => {
+  return new Sound(FILES[name], Sound.MAIN_BUNDLE, (error) => {
     if (error) delete players[name]
   })
 }

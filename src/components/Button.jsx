@@ -1,6 +1,7 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native'
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated'
 
+import { sounds } from '../lib/sounds'
 import { colors, fonts, radii } from '../theme'
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
@@ -54,6 +55,11 @@ export default function Button({
         disabled={inert}
         onPress={onPress}
         onPressIn={() => {
+          // Fired on press-in with the sink animation rather than on press, so
+          // the click lands with the finger instead of after it. Every primary
+          // button in the app is this component, so this is the one place that
+          // has to know about it.
+          sounds.click()
           sink.value = withTiming(DEPTH, { duration: 60 })
         }}
         onPressOut={() => {

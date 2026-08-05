@@ -24,6 +24,26 @@
     {
       "path": "assets/fonts/Poppins-SemiBold.ttf",
       "sha1": "8a4ace9392d06bcb7f8ea2f5169b07e4c383a90d"
+    },
+    {
+      "path": "assets/sounds/click.wav",
+      "sha1": "59be00e4209457e60ac6508c3785d2f6b85e76fc"
+    },
+    {
+      "path": "assets/sounds/complete.wav",
+      "sha1": "18a714105a9fc5994baa4d8c92cb52b8f85097c0"
+    },
+    {
+      "path": "assets/sounds/correct.wav",
+      "sha1": "04ca84ffdaaf27243fa4be662a39a005513ce446"
+    },
+    {
+      "path": "assets/sounds/incorrect.wav",
+      "sha1": "0f491a1d09a96b256ef6be7a3a7da0331fa37787"
+    },
+    {
+      "path": "assets/sounds/select.wav",
+      "sha1": "8a0f93f4e15de6595f3f83c04465dce0a60e79ee"
     }
   ]
 }

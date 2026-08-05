@@ -34,6 +34,7 @@ import { chapterTitle, questTitle } from '@/lib/contentNames'
 import { useTranslate } from '@/lib/i18n'
 import { useRefresh } from '@/lib/useRefresh'
 import { useLayout } from '@/lib/responsive'
+import { sounds } from '@/lib/sounds'
 import { colors, fonts, radii, shadows, spacing } from '@/theme'
 
 /** Cards arrive one after another rather than all at once. */
@@ -152,11 +153,14 @@ export default function Home() {
   const heartsRegen = shortDuration(state?.heartsRegenSecondsRemaining)
 
   const openChapter = useCallback(
-    (chapter) =>
+    (chapter) => {
+      sounds.click()
+
       router.push({
         pathname: '/chapter/[id]',
         params: { id: String(chapter.id), title: chapter.title },
-      }),
+      })
+    },
     [router],
   )
 

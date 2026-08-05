@@ -17,7 +17,9 @@ import AddCourseScreen from '../screens/main/add-course'
 import AlphabetScreen from '../screens/main/alphabet'
 import AvatarScreen from '../screens/main/avatar'
 import ChapterScreen from '../screens/main/ChapterScreen'
+import ContactScreen from '../screens/main/contact'
 import CoursesScreen from '../screens/main/courses'
+import LegalScreen from '../screens/main/legal'
 import FamilyScreen from '../screens/main/family'
 import HeartsScreen from '../screens/main/hearts'
 import HomeScreen from '../screens/main/home'
@@ -175,6 +177,18 @@ export default function MainTabs() {
         name="hearts"
         component={HeartsScreen}
         options={{ title: 'Hearts', tabBarHidden: true, tabBarParent: 'home' }}
+      />
+      {/* Terms and Privacy share one screen, told apart by a `slug` param.
+          Both are opened from Profile, so Profile stays lit. */}
+      <Tab.Screen
+        name="legal"
+        component={LegalScreen}
+        options={{ title: 'Legal', tabBarHidden: true, tabBarParent: 'profile' }}
+      />
+      <Tab.Screen
+        name="contact"
+        component={ContactScreen}
+        options={{ title: 'Contact us', tabBarHidden: true, tabBarParent: 'profile' }}
       />
       {/* A lesson or a trivia round takes over the screen: tabbing away
           mid-question would lose the answer, and the bar eats room the

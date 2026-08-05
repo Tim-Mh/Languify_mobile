@@ -35,6 +35,7 @@ import { nextAd } from '@/lib/adRotation'
 import { useTranslate } from '@/lib/i18n'
 import { useLayout } from '@/lib/responsive'
 import { releaseSounds, sounds } from '@/lib/sounds'
+import { useExitFlow } from '@/lib/useExitFlow'
 import { colors, fonts, radii, spacing } from '@/theme'
 
 /**
@@ -85,6 +86,8 @@ export default function LessonRoute() {
 function LessonPlayer({ id, chapterId }) {
   const insets = useSafeAreaInsets()
   const router = useRouter()
+  // Leaving a full-screen flow so it is really gone: see the note in leave().
+  const exitFlow = useExitFlow()
   const notify = useNotify()
   const { user } = useAuth()
   const t = useTranslate()
@@ -138,15 +141,9 @@ function LessonPlayer({ id, chapterId }) {
   // do not each pay to spin one up; they are handed back when the lesson closes.
   useEffect(() => () => releaseSounds(), [])
 
-  // The fanfare belongs to the rewards, and the rewards are now the first thing
-  // the learner sees, so it plays the moment the summary lands. The ref keeps it
-  // to once per lesson.
-  const fanfarePlayed = useRef(false)
-  useEffect(() => {
-    if (!summary || fanfarePlayed.current) return
-    fanfarePlayed.current = true
-    sounds.complete()
-  }, [summary])
+  // The fanfare is `RewardModal`'s now, fired with the confetti so the two stay
+  // in step. Playing it here as well double-struck it on every lesson, and left
+  // the chest and quest popups — which use the same modal — silent.
 
   /**
    * What the answer should have been, for the wrong-answer bar. Only the types
@@ -271,13 +268,22 @@ function LessonPlayer({ id, chapterId }) {
     // rewards card re-shown over it, needing a second Continue. The route
     // wrapper remounts this player from scratch on the next visit, so there is
     // nothing to reset on the way out.
+    //
+    // Through `exitFlow` rather than `router.replace`, and that is the whole
+    // point: every screen here is a sibling in one tab navigator, where there
+    // is no stack entry to replace. A replace focuses the sibling and *appends*
+    // to the focus history, so finishing a lesson left
+    // `[…, chapter, lesson, chapter]` and one press of back walked straight
+    // back into the finished lesson. `exitFlow` drops this screen from that
+    // history first, so back from the chapter goes wherever it went before the
+    // lesson started.
     if (chapterId) {
-      router.replace({ pathname: '/chapter/[id]', params: { id: String(chapterId) } })
+      exitFlow({ pathname: '/chapter/[id]', params: { id: String(chapterId) } })
       return
     }
     // Deep-linked straight into a lesson, so there is no path to go back to.
-    router.replace('/home')
-  }, [chapterId, router])
+    exitFlow('/home')
+  }, [chapterId, exitFlow])
 
   /**
    * Continue on the rewards card. If there is a creative to show, this is where

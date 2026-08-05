@@ -83,6 +83,18 @@ async function signInWithGoogleNative() {
       await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true })
     }
 
+    // Clears the SDK's own cached session so the account chooser is always
+    // shown. Without it, Google silently reuses whichever account signed in
+    // last and there is no way to pick a different one — on a shared phone, or
+    // for anyone with a personal and a work account, that is a dead end with no
+    // visible cause. This only signs out of the Google SDK; it does not touch
+    // our session.
+    try {
+      await GoogleSignin.signOut()
+    } catch {
+      // Nothing was signed in. Nothing to clear.
+    }
+
     const result = await GoogleSignin.signIn()
 
     // v13+ returns { type, data }; older builds return the user object flat.

@@ -8,7 +8,7 @@ import { colors, fonts, radii, spacing } from '../theme'
  * state (focused / error) so a mistake is visible without reading the message.
  */
 const TextField = forwardRef(function TextField(
-  { label, error, secureToggle = false, style, ...props },
+  { label, error, secureToggle = false, style, inputStyle, ...props },
   ref,
 ) {
   const [focused, setFocused] = useState(false)
@@ -24,10 +24,16 @@ const TextField = forwardRef(function TextField(
     <View style={[styles.wrapper, style]}>
       {label ? <Text style={styles.label}>{label}</Text> : null}
 
-      <View style={[styles.inputRow, { borderColor }]}>
+      {/* `alignItems` is only relaxed for a multiline field: a single-line
+          input has to stay vertically centred in its row, while a textarea has
+          to fill it from the top or the first line floats in the middle. */}
+      <View style={[styles.inputRow, props.multiline && styles.inputRowMultiline, { borderColor }]}>
         <TextInput
           ref={ref}
-          style={styles.input}
+          // `inputStyle` last so a caller can override the fixed height, which
+          // is what a multiline field needs — without it the row stays 52pt
+          // tall however many lines are typed.
+          style={[styles.input, inputStyle]}
           placeholderTextColor={colors.secondary[300]}
           secureTextEntry={hidden}
           onFocus={() => setFocused(true)}
@@ -70,6 +76,9 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderRadius: radii.lg,
     paddingHorizontal: spacing.md,
+  },
+  inputRowMultiline: {
+    alignItems: 'stretch',
   },
   input: {
     flex: 1,

@@ -25,6 +25,7 @@ import {
 import { useTranslate } from '@/lib/i18n'
 import { useLayout } from '@/lib/responsive'
 import { releaseSounds, sounds } from '@/lib/sounds'
+import { useExitFlow } from '@/lib/useExitFlow'
 import { colors, fonts, radii, shadows, spacing } from '@/theme'
 
 const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F']
@@ -60,6 +61,7 @@ export default function TriviaRoute() {
 function TriviaRound({ topic, title }) {
   const insets = useSafeAreaInsets()
   const router = useRouter()
+  const exitFlow = useExitFlow()
   const notify = useNotify()
   const t = useTranslate()
   const { column, contentWidth, size } = useLayout()
@@ -120,8 +122,13 @@ function TriviaRound({ topic, title }) {
    */
   const leave = useCallback(() => {
     setSummary(null)
-    router.replace('/trivia')
-  }, [router])
+    // `exitFlow`, not `router.replace`, for the same reason the lesson player
+    // uses it: these screens are siblings in one tab navigator, where a replace
+    // focuses the sibling and appends to the focus history rather than
+    // replacing anything. Without this, back from the topic list walked into
+    // the round that was just finished.
+    exitFlow('/trivia')
+  }, [exitFlow])
 
   /**
    * The Android back gesture is the other quit button, so it asks the same

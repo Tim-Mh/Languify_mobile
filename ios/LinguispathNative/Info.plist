@@ -32,9 +32,6 @@
 				<string>languify</string>
 			</array>
 		</dict>
-		<!-- Native Google Sign-In's return leg: the SDK bounces through this
-		     reversed form of GOOGLE_IOS_CLIENT_ID (.env) to get back into the
-		     app. Both change together or neither. -->
 		<dict>
 			<key>CFBundleURLName</key>
 			<string>google-signin</string>

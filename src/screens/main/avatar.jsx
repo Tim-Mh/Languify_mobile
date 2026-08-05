@@ -119,13 +119,10 @@ const OptionTile = memo(function OptionTile({
         disabled={disabled}
         onPress={() => onPress(value)}
         // The ring sits outside the tile rather than as a border on it, so a
-        // selected swatch is not visibly smaller than its neighbours — the same
-        // ring-offset the web uses.
-        style={({ pressed }) => [
-          styles.ring,
-          selected && styles.ringOn,
-          pressed && styles.pressed,
-        ]}
+        // selected swatch is not visibly smaller than its neighbours. It is
+        // transparent in both states — selection is shown by the check overlay
+        // on the tile instead.
+        style={({ pressed }) => [styles.ring, pressed && styles.pressed]}
       >
         <View
           style={[styles.tile, box, isColor ? { backgroundColor: `#${value}` } : styles.tileFace]}
@@ -493,14 +490,20 @@ const styles = StyleSheet.create({
   // 2pt gap and the 2pt border itself. Anything else leaves the two curves
   // non-concentric, which shows up as the ring clipping the corners of the
   // swatch on one side and floating away from it on the other.
+  /**
+   * The ring is transparent in both states now.
+   *
+   * It stays in the tree rather than being deleted because it also supplies the
+   * gap and padding every tile is laid out against: dropping it would resize
+   * the whole grid. The selected tile is still marked, by the check overlay
+   * drawn on top of it, which reads more clearly than a pink outline did
+   * against forty-five faces.
+   */
   ring: {
     borderRadius: radii.lg + RING_GAP + RING_WIDTH,
     borderWidth: RING_WIDTH,
     borderColor: 'transparent',
     padding: RING_GAP,
-  },
-  ringOn: {
-    borderColor: colors.primary[500],
   },
   tile: {
     borderRadius: radii.lg,

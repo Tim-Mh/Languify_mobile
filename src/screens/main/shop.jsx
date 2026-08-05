@@ -49,7 +49,7 @@ export default function Shop() {
     if (result?.cancelled) return
 
     if (result?.status === 'completed' || result?.status === 'already_completed') {
-      sounds.complete()
+      // The fanfare is RewardModal's, fired with the confetti.
       setCelebration({
         title: t('m_shop_gems_added'),
         subtitle: t('m_shop_gems_added_s', { pack: gemPackTitle(t, result.pack) }),
@@ -67,7 +67,7 @@ export default function Shop() {
   }
 
   const celebrateHearts = (tier) => () => {
-    sounds.complete()
+    // The fanfare is RewardModal's, fired with the confetti.
     setCelebration({
       title: t('m_shop_hearts_done'),
       subtitle: t('m_shop_hearts_sub'),

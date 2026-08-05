@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated'
 
+import { sounds } from '../lib/sounds'
 import { colors, fonts, radii, shadows } from '../theme'
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
@@ -75,6 +76,8 @@ export default function TabBar({ state, descriptors, navigation }) {
         const color = focused ? colors.primary[600] : colors.secondary[300]
 
         const onPress = () => {
+          sounds.click()
+
           const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true })
           if (!isCurrentScreen && !event.defaultPrevented) navigation.navigate(route.name)
         }

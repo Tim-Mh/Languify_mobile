@@ -4,14 +4,16 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter } from '@/navigation'
 import { LinearGradient } from 'react-native-linear-gradient'
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated'
-import Bell from 'lucide-react-native/icons/bell'
 import BookOpen from 'lucide-react-native/icons/book-open'
 import Check from 'lucide-react-native/icons/check'
 import ChevronRight from 'lucide-react-native/icons/chevron-right'
 import Crown from 'lucide-react-native/icons/crown'
+import FileText from 'lucide-react-native/icons/file-text'
 import Flame from 'lucide-react-native/icons/flame'
 import Languages from 'lucide-react-native/icons/languages'
+import Mail from 'lucide-react-native/icons/mail'
 import Pencil from 'lucide-react-native/icons/pencil'
+import ShieldCheck from 'lucide-react-native/icons/shield-check'
 import Star from 'lucide-react-native/icons/star'
 import Users from 'lucide-react-native/icons/users'
 import Zap from 'lucide-react-native/icons/zap'
@@ -174,7 +176,14 @@ export default function Profile() {
                     returnKeyType="done"
                     maxLength={40}
                     editable={!rename.isPending}
-                    accessibilityLabel="Your name"
+                    accessibilityLabel={t('m_profile_name_label')}
+                    // Without these the field is simply blank for anyone who has
+                    // no name set yet, with nothing to say what belongs in it.
+                    // The colour matters as much as the text: this sits on the
+                    // plum gradient, so the default grey placeholder is barely
+                    // legible against it.
+                    placeholder={t('m_profile_name_placeholder')}
+                    placeholderTextColor="rgba(255,255,255,0.6)"
                     style={styles.nameInput}
                   />
                   <Pressable
@@ -327,14 +336,28 @@ export default function Profile() {
           hint={t('m_profile_courses_hint')}
           onPress={() => router.push('/courses')}
         />
-        {/* The only route to the notification settings. Required to be
-            reachable in-app: the OS switch is all-or-nothing, and an app that
-            offers no finer control than that does not pass App Store review. */}
+      </View>
+
+      {/* Terms, privacy and a way to reach a human, as on the web. The two
+          documents are written in the admin panel and read live, so they can
+          never drift from what languify.us is showing. */}
+      <Text style={styles.sectionLabel}>{t('m_profile_about')}</Text>
+      <View style={styles.card}>
         <LinkRow
-          icon={<Bell size={18} color={colors.secondary[500]} strokeWidth={2.2} />}
-          label={t('m_profile_notifications')}
-          hint={t('m_profile_notifications_hint')}
-          onPress={() => router.push('/notifications')}
+          icon={<FileText size={18} color={colors.secondary[500]} strokeWidth={2.2} />}
+          label={t('m_profile_terms')}
+          onPress={() => router.push({ pathname: '/legal', params: { slug: 'terms' } })}
+        />
+        <LinkRow
+          icon={<ShieldCheck size={18} color={colors.secondary[500]} strokeWidth={2.2} />}
+          label={t('m_profile_privacy')}
+          onPress={() => router.push({ pathname: '/legal', params: { slug: 'privacy' } })}
+        />
+        <LinkRow
+          icon={<Mail size={18} color={colors.secondary[500]} strokeWidth={2.2} />}
+          label={t('m_profile_contact')}
+          hint={t('m_profile_contact_hint')}
+          onPress={() => router.push('/contact')}
           last
         />
       </View>

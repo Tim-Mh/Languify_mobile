@@ -8,6 +8,14 @@
     -->
     <color name="notification_color">#e040a0</color>
 
-    <!-- The adaptive launcher icon's background layer, per the Expo build. -->
-    <color name="ic_launcher_background">#613f88</color>
+    <!--
+      The adaptive launcher icon's background layer. White, because the icon is
+      now the Languify emblem, which is multicoloured line art and needs a
+      neutral behind it — the brand purple swallowed the darker arms of the mark.
+
+      The adaptive icon points at @mipmap/ic_launcher_background (a generated
+      PNG of this colour) rather than at this value directly, so changing it
+      here alone does nothing: regenerate the icons too.
+    -->
+    <color name="ic_launcher_background">#ffffff</color>
 </resources>

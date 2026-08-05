@@ -28,6 +28,7 @@ import { useRefresh } from '@/lib/useRefresh'
 import { useGoBack } from '@/lib/useGoBack'
 import { useTranslate } from '@/lib/i18n'
 import { useLayout } from '@/lib/responsive'
+import { sounds } from '@/lib/sounds'
 import { colors, fonts, radii, shadows, spacing } from '@/theme'
 
 /** Matches the web: the path column is capped so it snakes rather than sprawls. */
@@ -74,6 +75,10 @@ export default function ChapterPath() {
   const lessonOrder = new Map(flatLessons.map((lesson, index) => [lesson.id, index]))
 
   const openLesson = (lesson, isLocked) => {
+    // Played for a locked node too: the tap did something, it just said no, and
+    // silence there reads as the button being broken rather than refusing.
+    sounds.click()
+
     if (isLocked) {
       notify.info(t('m_finish_previous'))
       return

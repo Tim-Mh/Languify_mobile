@@ -161,7 +161,7 @@ export default function Streak() {
             </View>
             <Text style={styles.cardBody}>
               {target.days - streak} more {target.days - streak === 1 ? 'day' : 'days'} to{' '}
-              {target.title}
+              {t(target.titleKey)}
               {target.gems > 0 ? `, worth ${target.gems} gems` : ''}.
             </Text>
             <View style={styles.track}>
@@ -337,7 +337,7 @@ export default function Streak() {
                 )}
               </View>
               <View style={styles.milestoneCopy}>
-                <Text style={styles.milestoneTitle}>{milestone.title}</Text>
+                <Text style={styles.milestoneTitle}>{t(milestone.titleKey)}</Text>
                 <Text style={styles.milestoneMeta}>
                   {milestone.days} days
                   {milestone.gems > 0 ? ` · ${milestone.gems} gems` : ''}

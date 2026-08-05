@@ -59,6 +59,8 @@ export const TAB_SCREENS = [
   'alphabet',
   'streak',
   'hearts',
+  'legal',
+  'contact',
   'lesson/[id]',
   'trivia/[topic]',
 ]

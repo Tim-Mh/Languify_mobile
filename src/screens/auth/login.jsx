@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
-import { Link, useRouter } from '@/navigation'
+import { Link, useLocalSearchParams, useRouter } from '@/navigation'
 
 import AuthScreen from '@/components/AuthScreen'
 import Button from '@/components/Button'
@@ -21,7 +21,12 @@ export default function Login() {
   const { sessionExpired, acknowledgeSessionExpiry } = useAuth()
   const passwordRef = useRef(null)
 
-  const [email, setEmail] = useState('')
+  // Set when a Google or Apple sign-in found an existing password account for
+  // the same address. The backend has stashed the link and wants the password
+  // proved once before joining them.
+  const { email: prefillEmail, linkProvider } = useLocalSearchParams()
+
+  const [email, setEmail] = useState(prefillEmail ? String(prefillEmail) : '')
   const [password, setPassword] = useState('')
 
   // Someone bounced here by an expired token deserves to know why, rather than
@@ -31,6 +36,17 @@ export default function Login() {
     notify.info(t('m_auth_expired'), { duration: 5000 })
     acknowledgeSessionExpiry()
   }, [acknowledgeSessionExpiry, notify, sessionExpired])
+
+  // Say why they are suddenly on the login screen after tapping a provider
+  // button, and that it is a one-off. Without this the redirect reads as the
+  // sign-in having failed for no reason.
+  useEffect(() => {
+    if (!linkProvider) return
+    notify.info(t('m_auth_link_password_first'), { duration: 6000 })
+    // Straight to the password: the address is already filled in, and it is the
+    // only thing still being asked for.
+    passwordRef.current?.focus()
+  }, [linkProvider, notify, t])
 
   const login = useSignIn()
 

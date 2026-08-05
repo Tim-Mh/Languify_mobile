@@ -8,6 +8,7 @@ import Zap from 'lucide-react-native/icons/zap'
 
 import Button from './Button'
 import Confetti from './Confetti'
+import { sounds } from '../lib/sounds'
 import { useLayout } from '../lib/responsive'
 import { colors, fonts, radii, shadows, spacing } from '../theme'
 
@@ -64,6 +65,19 @@ export default function RewardModal({
     const timer = setTimeout(() => setLive(true), 260)
     return () => clearTimeout(timer)
   }, [visible])
+
+  /**
+   * The fanfare, fired with the confetti rather than by each caller.
+   *
+   * It used to be the caller's job, which meant a lesson and a gem purchase
+   * played it and the daily chest, a claimed quest and a claimed badge did not
+   * — the popups that most look like a celebration were the silent ones. Tying
+   * it to the same `live` flag the burst uses keeps sound and confetti in step,
+   * and means a new reward popup gets both for free.
+   */
+  useEffect(() => {
+    if (live && celebrate) sounds.complete()
+  }, [live, celebrate])
 
   return (
     <Modal

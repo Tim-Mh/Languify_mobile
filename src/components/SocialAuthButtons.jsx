@@ -1,4 +1,4 @@
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native'
+import { ActivityIndicator, Platform, Pressable, StyleSheet, Text, View } from 'react-native'
 import { useRouter } from '@/navigation'
 import Svg, { Path } from 'react-native-svg'
 
@@ -53,10 +53,18 @@ function AppleMark({ color }) {
  * routes the web app uses; the only difference is that the callback redirects
  * back into this app carrying a token instead of setting a cookie.
  *
- * Apple is shown on every platform rather than iOS only, matching the web app.
- * It is also required on iOS: Apple's review guidelines mandate Sign in with
- * Apple wherever another third-party sign-in is offered.
+ * **Apple is iOS only.** It is *required* there — Apple's review guidelines
+ * mandate Sign in with Apple wherever another third-party sign-in is offered —
+ * but on Android it has no native sheet, so it fell back to a browser round
+ * trip that few Android users have an Apple ID for. Offering it there cost the
+ * Google button half the row and left its label cramped, which is the visible
+ * half of the same problem.
+ *
+ * With one provider the button fills the row, which is the ordinary shape for a
+ * single social sign-in and needs no special casing: `flex: 1` on the only
+ * child does it.
  */
+const SHOWS_APPLE = Platform.OS === 'ios'
 export default function SocialAuthButtons({ label }) {
   const t = useTranslate()
   const router = useRouter()
@@ -68,6 +76,23 @@ export default function SocialAuthButtons({ label }) {
     oauth.mutate(provider, {
       onSuccess: (session) => {
         if (session) router.replace(routeAfterAuth(session.user))
+      },
+      onError: (error) => {
+        // The email already belongs to a password account. The backend has
+        // stashed the link and wants the password proved once before joining
+        // them, which is deliberate: a provider verifying an email does not
+        // prove this is the person who set that account's password.
+        //
+        // Left as a bare error this is a dead end — the learner is told an
+        // account exists and given nowhere to go. Sending them to login with
+        // the address already filled in turns it into the one step it actually
+        // is, after which the provider is linked automatically.
+        if (error?.status === 409 && error?.payload?.email) {
+          router.push({
+            pathname: '/(auth)/login',
+            params: { email: String(error.payload.email), linkProvider: provider },
+          })
+        }
       },
     })
 
@@ -93,14 +118,16 @@ export default function SocialAuthButtons({ label }) {
           label={t('m_auth_google')}
           accessibilityLabel="Continue with Google"
         />
-        <ProviderButton
-          onPress={() => start('apple')}
-          disabled={oauth.isPending}
-          loading={pendingProvider === 'apple'}
-          icon={<AppleMark color={colors.secondary[900]} />}
-          label={t('m_auth_apple')}
-          accessibilityLabel="Continue with Apple"
-        />
+        {SHOWS_APPLE ? (
+          <ProviderButton
+            onPress={() => start('apple')}
+            disabled={oauth.isPending}
+            loading={pendingProvider === 'apple'}
+            icon={<AppleMark color={colors.secondary[900]} />}
+            label={t('m_auth_apple')}
+            accessibilityLabel="Continue with Apple"
+          />
+        ) : null}
       </View>
     </View>
   )
@@ -125,7 +152,11 @@ function ProviderButton({ onPress, disabled, loading, icon, label, accessibility
       ) : (
         <>
           {icon}
-          <Text style={styles.buttonLabel}>{label}</Text>
+          {/* Kept to one line so a longer translation shrinks rather than
+              wrapping and pushing the button out of its row. */}
+          <Text style={styles.buttonLabel} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>
+            {label}
+          </Text>
         </>
       )}
     </Pressable>
