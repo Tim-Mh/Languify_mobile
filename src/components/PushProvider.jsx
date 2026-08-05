@@ -6,17 +6,17 @@ import {
   onMessage,
   onNotificationOpenedApp,
 } from '@react-native-firebase/messaging'
+import notifee, { EventType } from '@notifee/react-native'
 import { useRouter } from '@/navigation'
 
 import { registerDevice } from '../api/push'
 import { useAuth } from '../auth/AuthContext'
-import { messageContent, register as registerForPush, targetRoute } from '../lib/push'
-import { useNotify } from './NotificationProvider'
+import { displayPush, register as registerForPush, targetRoute } from '../lib/push'
 
 /**
  * Connects remote push to the running app: enrols the device once the learner is
- * signed in, turns a push that arrives in the foreground into the app's own
- * toast, and routes a tapped one to the screen it promised.
+ * signed in, puts an arriving push in the notification tray, and routes a tapped
+ * one to the screen it promised.
  *
  * Renders nothing. It sits inside both AuthProvider (it needs to know when
  * there is a session to attach the token to) and NotificationProvider (it
@@ -24,7 +24,6 @@ import { useNotify } from './NotificationProvider'
  */
 export function PushProvider({ children }) {
   const router = useRouter()
-  const notify = useNotify()
   const { isSignedIn, ready } = useAuth()
 
   /**
@@ -93,28 +92,52 @@ export function PushProvider({ children }) {
     [isSignedIn, router],
   )
 
-  // Arrived while the app is open. Firebase does not draw anything itself for a
-  // foreground message, which is exactly what we want: a banner dropping over
-  // the app mid-lesson, for something the learner can already see happening,
-  // reads as broken. The app's own toast is shown instead, so a push matches
-  // every other in-app message rather than pasting a system banner over the UI.
+  // Arrived while the app is open. Firebase draws nothing itself for a
+  // foreground message, so without this the push would exist only for as long
+  // as a toast was on screen and then be gone for good.
+  //
+  // It is posted to the tray instead, exactly as a backgrounded one is, so
+  // every notification survives until the learner deals with it. That is a
+  // deliberate reversal: this used to show an in-app toast and nothing else, on
+  // the reasoning that a banner over a lesson reads as broken. It also meant a
+  // notification arriving at a glanced-at moment was lost, which matters more.
   useEffect(() => {
     return onMessage(getMessaging(), (message) => {
-      const { title, body } = messageContent(message)
-
-      if (body) notify.info(body, { title: title ?? undefined })
+      displayPush(message).catch(() => {
+        // Notifications are not worth interrupting a lesson for. A refused
+        // channel or a revoked permission leaves the app working.
+      })
     })
-  }, [notify])
+  }, [])
 
-  // Tapped while the app was backgrounded but still running.
+  // Tapped while the app was backgrounded but still running. This is the
+  // system-drawn notification, the one Android builds from the payload's
+  // `notification` block without waking us.
   useEffect(() => {
     return onNotificationOpenedApp(getMessaging(), openTarget)
   }, [openTarget])
 
+  // Tapped on a notification *we* posted, rather than one the system drew.
+  //
+  // Firebase knows nothing about those, so `onNotificationOpenedApp` never
+  // fires for them and the deep link would be dropped. Every foreground push
+  // now goes through Notifee, so without this the most common notification in
+  // the tray would be the one that does not route.
+  useEffect(() => {
+    return notifee.onForegroundEvent(({ type, detail }) => {
+      if (type === EventType.PRESS && detail.notification) {
+        openTarget(detail.notification)
+      }
+    })
+  }, [openTarget])
+
   // Tapped while the app was closed. The message is waiting rather than
-  // delivered to the listener above, so it is collected once auth has resolved —
-  // any earlier and the router is still on its way to deciding the first screen,
+  // delivered to a listener, so it is collected once auth has resolved — any
+  // earlier and the router is still on its way to deciding the first screen,
   // and this push would be overwritten by that decision.
+  //
+  // Both sources are asked, because a cold start can come from either: Firebase
+  // holds the system-drawn one, Notifee holds one we posted ourselves.
   useEffect(() => {
     if (!ready || !isSignedIn || handledColdStart.current) return
 
@@ -122,7 +145,11 @@ export function PushProvider({ children }) {
 
     getInitialNotification(getMessaging())
       .then((message) => {
-        if (message) openTarget(message)
+        if (message) return openTarget(message)
+
+        return notifee.getInitialNotification().then((initial) => {
+          if (initial?.notification) openTarget(initial.notification)
+        })
       })
       .catch(() => {
         // Nothing launched the app, or Firebase is not configured in this

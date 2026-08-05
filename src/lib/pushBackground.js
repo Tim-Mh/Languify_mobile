@@ -1,52 +1,39 @@
 import { getMessaging, setBackgroundMessageHandler } from '@react-native-firebase/messaging'
 import notifee from '@notifee/react-native'
 
-import { CHANNELS, messageContent } from './push'
+import { displayPush } from './push'
 
 /**
- * What happens to a push that arrives while the app is not in the foreground.
+ * What happens to a push that arrives, or is tapped, while the app is not in the
+ * foreground.
  *
- * Registered from `index.js`, at module scope and outside React, because
- * Firebase requires the handler to be in place before the JS bundle finishes
- * evaluating — a message can be delivered to a headless task with no component
- * tree at all, and a handler registered inside a component would not exist yet.
- *
- * A message sent with a `notification` block is drawn by the system itself and
- * never reaches here, so this only has to deal with data-only messages. Those
- * are displayed explicitly, because a data-only message that is not displayed
- * is simply never seen.
- *
- * The channel comes from the payload and falls back to `default`, matching the
- * contract described in `push.js`. Asking for a channel that was never created
- * would drop the notification silently on Android, so an unknown id is mapped
- * back to one that exists rather than passed through.
+ * Registered from `index.js`, at module scope and outside React, because both
+ * handlers have to be in place before the JS bundle finishes evaluating — a
+ * message can be delivered to a headless task with no component tree at all, and
+ * a handler registered inside a component would not exist yet.
  */
-const CHANNEL_IDS = CHANNELS.map((channel) => channel.id)
 
-function channelFor(message) {
-  const requested = message?.data?.channelId
-
-  return CHANNEL_IDS.includes(requested) ? requested : 'default'
-}
-
+/**
+ * On Android a message carrying a `notification` block is drawn by the system
+ * itself and never reaches here, which is why a backgrounded push already lands
+ * in the tray and stays there. This exists for data-only messages, which nobody
+ * draws by default and which would otherwise arrive and be seen by no one.
+ *
+ * Display goes through the same `displayPush` the foreground handler uses, so a
+ * notification looks and behaves identically however it arrived.
+ */
 setBackgroundMessageHandler(getMessaging(), async (message) => {
-  const { title, body } = messageContent(message)
-
-  // Nothing to show. A data-only message with no text is a signal to the app
-  // rather than something for the learner to read.
-  if (!body) return
-
-  await notifee.displayNotification({
-    title: title ?? undefined,
-    body,
-    // Carried through so a tap can still route: this is the same `data` the
-    // foreground and cold-start handlers read `url` off.
-    data: message?.data ?? {},
-    android: {
-      channelId: channelFor(message),
-      smallIcon: 'ic_notification',
-      color: '#e040a0',
-      pressAction: { id: 'default', launchActivity: 'default' },
-    },
-  })
+  await displayPush(message)
 })
+
+/**
+ * Notifee requires a background event handler to exist wherever notifications
+ * are displayed, and warns at runtime when one is missing.
+ *
+ * There is deliberately nothing to do in it. A press carries
+ * `launchActivity: 'default'`, so Android brings the app up and the notification
+ * is then waiting in `notifee.getInitialNotification()`, which `PushProvider`
+ * reads once auth has resolved. Routing from here instead would fire before the
+ * navigator exists and be swallowed.
+ */
+notifee.onBackgroundEvent(async () => {})

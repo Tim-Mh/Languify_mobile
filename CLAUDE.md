@@ -120,8 +120,12 @@ These are properties of the app rather than of Expo, and still hold:
   decides what to render.
 - **Non-loading states render through `StateView`**, so they stay one family.
 - **"Are you sure?" goes through `ConfirmDialog`, never `Alert.alert`.**
-- **Notifications drop from the top** (`useNotify` / `NotificationProvider`),
+- **In-app messages drop from the top** (`useNotify` / `NotificationProvider`),
   never the bottom, so they cannot cover the tab bar or the primary button.
+  That is for the app's own toasts — a saved profile, a failed purchase.
+  **Remote push no longer uses it**: an arriving push goes to the system tray
+  even when the app is open, so it survives until the learner deals with it.
+  A toast that vanishes after two seconds loses the notification for good.
 - **No haptics anywhere.** Vibration was removed on request; do not reintroduce
   it. The notification channels are created with vibration off, and Android
   bakes that in at creation time — changing it later needs a new channel id.

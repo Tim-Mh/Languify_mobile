@@ -220,11 +220,58 @@ export function targetRoute(message) {
  * Title and body, wherever the message happens to carry them.
  *
  * A message sent with a `notification` block puts them there; a data-only
- * message puts them in `data`. The in-app toast needs the text either way.
+ * message puts them in `data`. Every display path needs the text either way.
  */
 export function messageContent(message) {
   return {
     title: message?.notification?.title ?? message?.data?.title ?? null,
     body: message?.notification?.body ?? message?.data?.body ?? null,
   }
+}
+
+/** Channel ids that actually exist, so an unknown one can be mapped back. */
+const CHANNEL_IDS = CHANNELS.map((channel) => channel.id)
+
+/**
+ * The channel the payload asked for, or `default` if it named one we never
+ * created. Android drops a notification posted to an unknown channel silently,
+ * so this must never pass an id straight through.
+ */
+function channelFor(message) {
+  const requested = message?.data?.channelId
+
+  return CHANNEL_IDS.includes(requested) ? requested : 'default'
+}
+
+/**
+ * Puts a notification in the system tray.
+ *
+ * Shared by the foreground handler and the background one so a push looks the
+ * same however it arrives. It stays in the shade until the learner swipes it
+ * away or taps it — that is Android's default and what we want, so no `ongoing`
+ * or `autoCancel` override here. `ongoing` in particular would make it
+ * undismissable, which is for downloads and calls, not reminders.
+ */
+export async function displayPush(message) {
+  const { title, body } = messageContent(message)
+
+  // A data-only message with no text is a signal to the app rather than
+  // something for the learner to read.
+  if (!body) return
+
+  await notifee.displayNotification({
+    title: title ?? undefined,
+    body,
+    // Carried through so a tap can still route: this is the same `data` every
+    // handler reads `url` off.
+    data: message?.data ?? {},
+    android: {
+      channelId: channelFor(message),
+      smallIcon: 'ic_notification',
+      color: ACCENT,
+      // Reopens the app rather than doing nothing, and dismisses the
+      // notification as it goes, which is what tapping one should do.
+      pressAction: { id: 'default', launchActivity: 'default' },
+    },
+  })
 }
