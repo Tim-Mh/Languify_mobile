@@ -72,25 +72,38 @@ export default function AdInterstitial({ ad, seconds = 10, onContinue }) {
           </View>
         ) : (
           /*
-           * Rendered directly, with no entering animation around it.
+           * Sized by flex, not by `StyleSheet.absoluteFill`.
            *
-           * It used to sit inside an `Animated.View entering={FadeIn}`, which
-           * meant the creative was only visible once that animation had run. A
-           * layout animation on a view mounted by a whole-screen swap — which
-           * is what this is, the player early-returns straight to the
-           * interstitial — does not reliably fire, and when it does not the
-           * view is left at its starting opacity of zero. The result was an
-           * empty screen with the AD tag, the sponsor line and an enabled
-           * Continue button drawn over it, and no error anywhere, because the
-           * image had loaded perfectly well and simply could not be seen.
+           * Two things have made this creative invisible. It first sat inside an
+           * `Animated.View entering={FadeIn}`, so it only appeared once that
+           * animation had run — and a layout animation on a view mounted by a
+           * whole-screen swap, which is what this is, does not reliably fire,
+           * leaving the view at its starting opacity of zero.
            *
-           * A fade is not worth a creative that sometimes fails to appear.
+           * With that gone it was still absolutely positioned inside an
+           * absolutely positioned parent. That nesting is legal but it gives
+           * the image no intrinsic box to lay out against, and on Android a
+           * remote image whose bounds resolve late can end up measured at zero
+           * and never painted. A plain `flex: 1` inside a flex parent is one
+           * fewer thing that can resolve to nothing.
+           *
+           * `onLoad` and `onError` both report, because the failure mode here
+           * has twice been "looks broken, says nothing".
            */
           <Image
             source={{ uri: ad.url }}
-            style={StyleSheet.absoluteFill}
+            style={styles.creative}
             resizeMode="contain"
-            onError={() => setFailed(true)}
+            onLoad={({ nativeEvent }) => {
+              if (__DEV__) {
+                const { width, height } = nativeEvent?.source ?? {}
+                console.log(`[ad] loaded ${width}x${height} ${ad.url}`)
+              }
+            }}
+            onError={({ nativeEvent }) => {
+              if (__DEV__) console.warn(`[ad] failed ${ad.url}`, nativeEvent?.error)
+              setFailed(true)
+            }}
             accessibilityIgnoresInvertColors
           />
         )}
@@ -134,8 +147,17 @@ const styles = StyleSheet.create({
     // as a full-screen placement rather than as a picture on a white page.
     backgroundColor: colors.secondary[900],
   },
+  /**
+   * Fills the screen by flex rather than by absolute insets, so the image
+   * inside it has a real box to size against. The AD tag and the footer are
+   * still absolute and sit on top of this.
+   */
   canvas: {
-    ...StyleSheet.absoluteFillObject,
+    flex: 1,
+  },
+  creative: {
+    flex: 1,
+    width: '100%',
   },
   fallback: {
     flex: 1,
