@@ -7,52 +7,52 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		08381918CBC342B2B42671E6 /* select.wav in Resources */ = {isa = PBXBuildFile; fileRef = 730134550FFD484D806F28CA /* select.wav */; };
 		0C80B921A6F3F58F76C31292 /* libPods-LinguispathNative.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5DCACB8F33CDC322A6C60F78 /* libPods-LinguispathNative.a */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
+		1F1C44BEF7934C86B4F01C4B /* incorrect.wav in Resources */ = {isa = PBXBuildFile; fileRef = 673DC08A7AC8483CAE0F2DA8 /* incorrect.wav */; };
+		370DB24946F24C44AF5975DA /* Nunito-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 43270078AF9A4BCAAA02A3FB /* Nunito-Regular.ttf */; };
+		5136EC7FAA684FB68012CC8E /* Poppins-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 10EDC446FB904EABBB6CFCB4 /* Poppins-Medium.ttf */; };
 		61ECEAB112FDAF3B280CD86C /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
 		737B379C0C72486FA4F9DD66 /* BootSplash.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = C0BEC6C45C90406E8D01B864 /* BootSplash.storyboard */; };
 		75B7AEAF727E4EB99BA1B3BF /* Colors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ADD4E45A337B4BA49E911D16 /* Colors.xcassets */; };
 		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
-		AA00GS0000000000000000B1 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = AA00GS0000000000000000F1 /* GoogleService-Info.plist */; };
-		A43C748831C14F1EA932F08F /* Nunito-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FEB16D0AF68148F4ACFA5612 /* Nunito-Bold.ttf */; };
-		370DB24946F24C44AF5975DA /* Nunito-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 43270078AF9A4BCAAA02A3FB /* Nunito-Regular.ttf */; };
-		DCFC7BAB980040C191D52BC6 /* Nunito-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 44A16414D5FE427DB424F3A0 /* Nunito-SemiBold.ttf */; };
-		A3C9ECB94A2C4B6CB730BB07 /* Poppins-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 5B9D7E1025AC4ED5B932CA5A /* Poppins-Bold.ttf */; };
-		5136EC7FAA684FB68012CC8E /* Poppins-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 10EDC446FB904EABBB6CFCB4 /* Poppins-Medium.ttf */; };
-		D57EA1D76F964AA8BDC21293 /* Poppins-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = EF6CD7DABF4149859450B781 /* Poppins-SemiBold.ttf */; };
-		F22EDFB14F0444CF88FDFC08 /* click.wav in Resources */ = {isa = PBXBuildFile; fileRef = 06A4F0526CE548C1A9C09E5C /* click.wav */; };
-		E909CDAF0E32438BAE2A2D2A /* complete.wav in Resources */ = {isa = PBXBuildFile; fileRef = 6024538903DD4BB0A96F65BD /* complete.wav */; };
 		918511985FD84FF49E84273E /* correct.wav in Resources */ = {isa = PBXBuildFile; fileRef = 16518D6491F84E2988BB9F13 /* correct.wav */; };
-		1F1C44BEF7934C86B4F01C4B /* incorrect.wav in Resources */ = {isa = PBXBuildFile; fileRef = 673DC08A7AC8483CAE0F2DA8 /* incorrect.wav */; };
-		08381918CBC342B2B42671E6 /* select.wav in Resources */ = {isa = PBXBuildFile; fileRef = 730134550FFD484D806F28CA /* select.wav */; };
+		A3C9ECB94A2C4B6CB730BB07 /* Poppins-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 5B9D7E1025AC4ED5B932CA5A /* Poppins-Bold.ttf */; };
+		A43C748831C14F1EA932F08F /* Nunito-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FEB16D0AF68148F4ACFA5612 /* Nunito-Bold.ttf */; };
+		AA00GS0000000000000000B1 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = AA00GS0000000000000000F1 /* GoogleService-Info.plist */; };
+		D57EA1D76F964AA8BDC21293 /* Poppins-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = EF6CD7DABF4149859450B781 /* Poppins-SemiBold.ttf */; };
+		DCFC7BAB980040C191D52BC6 /* Nunito-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 44A16414D5FE427DB424F3A0 /* Nunito-SemiBold.ttf */; };
+		E909CDAF0E32438BAE2A2D2A /* complete.wav in Resources */ = {isa = PBXBuildFile; fileRef = 6024538903DD4BB0A96F65BD /* complete.wav */; };
+		F22EDFB14F0444CF88FDFC08 /* click.wav in Resources */ = {isa = PBXBuildFile; fileRef = 06A4F0526CE548C1A9C09E5C /* click.wav */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		06A4F0526CE548C1A9C09E5C /* click.wav */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = click.wav; path = ../assets/sounds/click.wav; sourceTree = "<group>"; };
+		10EDC446FB904EABBB6CFCB4 /* Poppins-Medium.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Poppins-Medium.ttf"; path = "../assets/fonts/Poppins-Medium.ttf"; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* LinguispathNative.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LinguispathNative.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = LinguispathNative/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = LinguispathNative/Info.plist; sourceTree = "<group>"; };
 		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = LinguispathNative/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		16518D6491F84E2988BB9F13 /* correct.wav */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = correct.wav; path = ../assets/sounds/correct.wav; sourceTree = "<group>"; };
 		3B4392A12AC88292D35C810B /* Pods-LinguispathNative.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LinguispathNative.debug.xcconfig"; path = "Target Support Files/Pods-LinguispathNative/Pods-LinguispathNative.debug.xcconfig"; sourceTree = "<group>"; };
+		43270078AF9A4BCAAA02A3FB /* Nunito-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Nunito-Regular.ttf"; path = "../assets/fonts/Nunito-Regular.ttf"; sourceTree = "<group>"; };
+		44A16414D5FE427DB424F3A0 /* Nunito-SemiBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Nunito-SemiBold.ttf"; path = "../assets/fonts/Nunito-SemiBold.ttf"; sourceTree = "<group>"; };
 		5709B34CF0A7D63546082F79 /* Pods-LinguispathNative.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LinguispathNative.release.xcconfig"; path = "Target Support Files/Pods-LinguispathNative/Pods-LinguispathNative.release.xcconfig"; sourceTree = "<group>"; };
+		5B9D7E1025AC4ED5B932CA5A /* Poppins-Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Poppins-Bold.ttf"; path = "../assets/fonts/Poppins-Bold.ttf"; sourceTree = "<group>"; };
 		5DCACB8F33CDC322A6C60F78 /* libPods-LinguispathNative.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-LinguispathNative.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		6024538903DD4BB0A96F65BD /* complete.wav */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = complete.wav; path = ../assets/sounds/complete.wav; sourceTree = "<group>"; };
+		673DC08A7AC8483CAE0F2DA8 /* incorrect.wav */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = incorrect.wav; path = ../assets/sounds/incorrect.wav; sourceTree = "<group>"; };
+		730134550FFD484D806F28CA /* select.wav */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = select.wav; path = ../assets/sounds/select.wav; sourceTree = "<group>"; };
 		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = LinguispathNative/AppDelegate.swift; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = LinguispathNative/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		AA00GS0000000000000000F1 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "LinguispathNative/GoogleService-Info.plist"; sourceTree = "<group>"; };
 		ADD4E45A337B4BA49E911D16 /* Colors.xcassets */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = folder.assetcatalog; name = Colors.xcassets; path = LinguispathNative/Colors.xcassets; sourceTree = "<group>"; };
 		C0BEC6C45C90406E8D01B864 /* BootSplash.storyboard */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = BootSplash.storyboard; path = LinguispathNative/BootSplash.storyboard; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
-		FEB16D0AF68148F4ACFA5612 /* Nunito-Bold.ttf */ = {isa = PBXFileReference; name = "Nunito-Bold.ttf"; path = "../assets/fonts/Nunito-Bold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		43270078AF9A4BCAAA02A3FB /* Nunito-Regular.ttf */ = {isa = PBXFileReference; name = "Nunito-Regular.ttf"; path = "../assets/fonts/Nunito-Regular.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		44A16414D5FE427DB424F3A0 /* Nunito-SemiBold.ttf */ = {isa = PBXFileReference; name = "Nunito-SemiBold.ttf"; path = "../assets/fonts/Nunito-SemiBold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		5B9D7E1025AC4ED5B932CA5A /* Poppins-Bold.ttf */ = {isa = PBXFileReference; name = "Poppins-Bold.ttf"; path = "../assets/fonts/Poppins-Bold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		10EDC446FB904EABBB6CFCB4 /* Poppins-Medium.ttf */ = {isa = PBXFileReference; name = "Poppins-Medium.ttf"; path = "../assets/fonts/Poppins-Medium.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		EF6CD7DABF4149859450B781 /* Poppins-SemiBold.ttf */ = {isa = PBXFileReference; name = "Poppins-SemiBold.ttf"; path = "../assets/fonts/Poppins-SemiBold.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		06A4F0526CE548C1A9C09E5C /* click.wav */ = {isa = PBXFileReference; name = "click.wav"; path = "../assets/sounds/click.wav"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		6024538903DD4BB0A96F65BD /* complete.wav */ = {isa = PBXFileReference; name = "complete.wav"; path = "../assets/sounds/complete.wav"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		16518D6491F84E2988BB9F13 /* correct.wav */ = {isa = PBXFileReference; name = "correct.wav"; path = "../assets/sounds/correct.wav"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		673DC08A7AC8483CAE0F2DA8 /* incorrect.wav */ = {isa = PBXFileReference; name = "incorrect.wav"; path = "../assets/sounds/incorrect.wav"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
-		730134550FFD484D806F28CA /* select.wav */ = {isa = PBXFileReference; name = "select.wav"; path = "../assets/sounds/select.wav"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		EF6CD7DABF4149859450B781 /* Poppins-SemiBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Poppins-SemiBold.ttf"; path = "../assets/fonts/Poppins-SemiBold.ttf"; sourceTree = "<group>"; };
+		FEB16D0AF68148F4ACFA5612 /* Nunito-Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Nunito-Bold.ttf"; path = "../assets/fonts/Nunito-Bold.ttf"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
