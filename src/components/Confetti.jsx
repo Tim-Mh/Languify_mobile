@@ -20,12 +20,17 @@ import { colors } from '../theme'
  *   begun before there was anything on screen — so it was effectively over
  *   before it could be seen.
  *
- * Both problems come from the same place: not knowing when the thing is
- * actually visible and how big it is. So this waits for its own `onLayout`
- * before starting, and takes every dimension from that layout rather than from
- * the window. It cannot begin against a detached view, and it cannot animate to
- * the wrong place. Callers still gate the mount on the modal being shown, which
- * is belt and braces.
+ * A third version then waited for its own `onLayout` before starting, which
+ * traded one silent failure for another: inside a modal, an absolutely
+ * positioned view can report 0x0 or never lay out at all, so the burst simply
+ * never began.
+ *
+ * What actually settles it is that the *caller* decides when this is visible —
+ * `RewardModal` mounts it only once the modal window is up — so this no longer
+ * has to infer that from a measurement. It takes its size from the window,
+ * starts immediately, and is rendered as a sibling of the scrim rather than
+ * inside it, clear of both the animated card's elevation and any Reanimated
+ * parent.
  *
  * One shared `Animated.Value` drives every piece through interpolation, so the
  * whole burst is a single native-driven animation rather than sixty of them.
@@ -202,7 +207,10 @@ function Piece({ piece, clock, size }) {
 const styles = StyleSheet.create({
   host: {
     ...StyleSheet.absoluteFillObject,
-    overflow: 'hidden',
+    // No `overflow: hidden`. Every piece launches from just outside the frame
+    // (`originX` is -12 or width + 12), so clipping to the host removed them at
+    // exactly the moment they should have been arriving.
+    //
     // Drawn over the card it celebrates. Android orders overlapping siblings by
     // elevation before document order, so zIndex alone would not lift it there.
     zIndex: 10,

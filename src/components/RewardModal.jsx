@@ -113,10 +113,21 @@ export default function RewardModal({
 
           <Button label={actionLabel} onPress={onClose} style={styles.action} />
         </Animated.View>
-
-        {/* Mounted fresh every time the modal opens, so the burst replays. */}
-        {celebrate && live ? <Confetti /> : null}
       </Animated.View>
+
+      {/*
+        A sibling of the scrim, not a child of it, and outside every Reanimated
+        view.
+
+        It sat inside the scrim next to the card, which put it in an elevation
+        contest with an animated sibling on Android and made it a child of a
+        Reanimated view whose own entering animation governs when its subtree
+        draws. Neither is a fight worth having for decoration. Out here it is a
+        plain overlay on the modal's own window with nothing above it.
+
+        Mounted fresh each time the modal opens, so the burst replays.
+      */}
+      {celebrate && live ? <Confetti /> : null}
     </Modal>
   )
 }
