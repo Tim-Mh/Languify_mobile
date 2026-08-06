@@ -74,7 +74,7 @@ class ReactNativeDelegate: RCTDefaultReactNativeFactoryDelegate {
   /// Without this the splash goes the instant the root view appears, which is
   /// before the first screen has drawn — a white flash between the logo and the
   /// app. `SplashScreen.jsx` calls `BootSplash.hide` once it has painted.
-  override func customize(_ rootView: UIView) {
+  override func customize(_ rootView: RCTRootView) {
     super.customize(rootView)
     RNBootSplash.initWithStoryboard("BootSplash", rootView: rootView)
   }
