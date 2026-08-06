@@ -13,7 +13,7 @@ import Button from './Button'
 import ConfirmDialog from './ConfirmDialog'
 import { useNotify } from './NotificationProvider'
 import RewardModal from './RewardModal'
-import { contentPhrase, planInterval, planTitle } from '../lib/contentNames'
+import { contentPhrase, planDescription, planInterval, planTitle } from '../lib/contentNames'
 import { useTranslate } from '../lib/i18n'
 import {
   useCancelSubscription,
@@ -312,7 +312,9 @@ export default function PlanManager({ plans = [] }) {
                   </View>
                 ) : null}
 
-                {plan.description ? <Text style={styles.cardBody}>{plan.description}</Text> : null}
+                {plan.description ? (
+                  <Text style={styles.cardBody}>{planDescription(t, plan)}</Text>
+                ) : null}
 
                 {(plan.features ?? []).map((feature) => (
                   <View key={feature} style={styles.featureRow}>

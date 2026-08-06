@@ -19,6 +19,7 @@ import { useRefillHearts, useShopCatalog } from '@/hooks/useShop'
 import { queryKeys } from '@/hooks/keys'
 import { useRefresh } from '@/lib/useRefresh'
 import { useGoBack } from '@/lib/useGoBack'
+import { contentPhrase, heartTierTitle } from '@/lib/contentNames'
 import { useTranslate } from '@/lib/i18n'
 import { useLayout } from '@/lib/responsive'
 import { colors, fonts, radii, shadows, spacing } from '@/theme'
@@ -135,7 +136,7 @@ export default function Hearts() {
               <Text style={[styles.statusValue, { fontSize: size(26) }]}>{t('m_unlimited_hearts')}</Text>
               <Text style={styles.statusMeta}>
                 {state?.infiniteHeartsPermanent
-                  ? 'Your plan includes them, so you never run out.'
+                  ? t('m_hearts_plan_includes')
                   : `${clock(infiniteLeft)} left`}
               </Text>
             </>
@@ -214,18 +215,18 @@ export default function Hearts() {
 
                         <View style={styles.tierCopy}>
                           <Text style={styles.tierTitle} numberOfLines={1}>
-                            {tier.title}
+                            {heartTierTitle(t, tier)}
                           </Text>
                           {tier.subtitle ? (
                             <Text style={styles.tierSub} numberOfLines={1}>
-                              {tier.subtitle}
+                              {contentPhrase(t, tier.subtitle)}
                             </Text>
                           ) : null}
                         </View>
 
                         <Pressable
                           accessibilityRole="button"
-                          accessibilityLabel={`${tier.title} for ${tier.priceGems} gems`}
+                          accessibilityLabel={`${heartTierTitle(t, tier)} — ${tier.priceGems}`}
                           disabled={full || refill.isPending}
                           onPress={() =>
                             // The hook owns the cache refresh and the error

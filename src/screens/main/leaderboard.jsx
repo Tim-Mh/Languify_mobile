@@ -13,6 +13,7 @@ import { LeagueSkeleton } from '@/components/Skeleton'
 import StateView from '@/components/StateView'
 import { TAB_BAR_OVERHANG } from '@/components/TabBar'
 import { useLeague } from '@/hooks/useProfile'
+import { leagueTierName } from '@/lib/contentNames'
 import { useTranslate } from '@/lib/i18n'
 import { useRefresh } from '@/lib/useRefresh'
 import { useLayout } from '@/lib/responsive'
@@ -119,7 +120,7 @@ export default function Leaderboard() {
                 {art ? <Image source={art} style={styles.tierArt} resizeMode="contain" /> : null}
 
                 <Text style={[styles.tierName, { fontSize: size(24) }]} numberOfLines={1}>
-                  {t('m_league_banner', { tier: league.tierName })}
+                  {t('m_league_banner', { tier: leagueTierName(t, league.tierName) })}
                 </Text>
 
                 <View style={styles.bannerFacts}>

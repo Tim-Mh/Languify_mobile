@@ -52,6 +52,28 @@ const PACK_KEYS = { basic: 'm_pack_basic', adventure: 'm_pack_adventure', vault:
 
 const PLAN_KEYS = { monthly: 'm_plan_monthly', yearly: 'm_plan_yearly', family: 'm_plan_family' }
 
+/** The blurb under each plan name, keyed the same way as the name itself. */
+const PLAN_DESC_KEYS = {
+  monthly: 'm_plan_desc_monthly',
+  yearly: 'm_plan_desc_yearly',
+  family: 'm_plan_desc_family',
+}
+
+/**
+ * League tiers, matched on the name rather than a key.
+ *
+ * `league_tiers` rows carry an `order_number` and a `name`, and it is the name
+ * the API sends, so there is nothing more stable to match on. Normalised so
+ * casing cannot break it.
+ */
+const LEAGUE_TIER_KEYS = {
+  bronze: 'm_league_tier_bronze',
+  silver: 'm_league_tier_silver',
+  gold: 'm_league_tier_gold',
+  sapphire: 'm_league_tier_sapphire',
+  diamond: 'm_league_tier_diamond',
+}
+
 const TIER_KEYS = { one: 'm_tier_one', three: 'm_tier_three', full: 'm_tier_full' }
 
 const INTERVAL_KEYS = { month: 'm_interval_month', year: 'm_interval_year' }
@@ -110,6 +132,22 @@ export function gemPackTitle(t, pack) {
 export function planTitle(t, plan) {
   const key = PLAN_KEYS[plan?.key]
   return key ? t(key) : (plan?.title ?? '')
+}
+
+export function planDescription(t, plan) {
+  const key = PLAN_DESC_KEYS[plan?.key]
+  return key ? t(key) : (plan?.description ?? '')
+}
+
+/**
+ * A league tier's name, translated where we know it.
+ *
+ * Falls back to whatever the API said, so an admin who adds a sixth tier gets
+ * their own name through rather than a blank banner.
+ */
+export function leagueTierName(t, name) {
+  const key = LEAGUE_TIER_KEYS[normalise(name)]
+  return key ? t(key) : (name ?? '')
 }
 
 export function heartTierTitle(t, tier) {

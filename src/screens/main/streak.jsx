@@ -550,10 +550,10 @@ const styles = StyleSheet.create({
   dayDot: {
     width: 36,
     height: 40,
-    // Fully rounded rather than a softened square. The marked days are filled
-    // blocks of colour, and at this size a 12pt radius still read as boxes in a
-    // grid; a pill makes them read as marks on a calendar.
-    borderRadius: radii.pill,
+    // A softened square, by request. This was a full pill, which read as marks
+    // on a calendar rather than as days in a grid; the rounded square keeps the
+    // grid legible while taking the hard corners off.
+    borderRadius: radii.md,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 1,

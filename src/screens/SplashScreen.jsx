@@ -1,167 +1,58 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { StyleSheet, View } from 'react-native'
 import { useRouter } from '@/navigation'
 import BootSplash from 'react-native-bootsplash'
-import Animated, {
-  Easing,
-  useAnimatedStyle,
-  useSharedValue,
-  withDelay,
-  withRepeat,
-  withSequence,
-  withSpring,
-  withTiming,
-} from 'react-native-reanimated'
-
 
 import { useAuth } from '@/auth/AuthContext'
 import { routeAfterAuth } from '@/auth/setupState'
-import { useLayout } from '@/lib/responsive'
-import { colors, radii, SPLASH_BACKGROUND } from '@/theme'
+import { SPLASH_BACKGROUND } from '@/theme'
 
-const MIN_VISIBLE_MS = 1700
-
-function LoadingDot({ index }) {
-  const lift = useSharedValue(0)
-
-  useEffect(() => {
-    lift.value = withDelay(
-      700 + index * 140,
-      withRepeat(
-        withSequence(
-          withTiming(-7, { duration: 320, easing: Easing.out(Easing.quad) }),
-          withTiming(0, { duration: 320, easing: Easing.in(Easing.quad) }),
-        ),
-        -1,
-        false,
-      ),
-    )
-  }, [index, lift])
-
-  const style = useAnimatedStyle(() => ({ transform: [{ translateY: lift.value }] }))
-
-  return <Animated.View style={[styles.dot, style]} />
-}
-
+/**
+ * Decides where the app opens, and nothing else.
+ *
+ * This screen used to draw its own animated logo: the native splash was hidden
+ * the moment it mounted, revealing a second, larger logo that sat for 1.7
+ * seconds before routing. Two logo screens at two different sizes, which is
+ * exactly what it looked like — the native mark is capped at 134dp by Android's
+ * splash spec while this one was drawn at ~220, so the handoff read as a jump
+ * rather than as a continuation.
+ *
+ * Now the native splash simply stays up until there is somewhere to go. One
+ * splash, and the app opens sooner for losing the artificial delay: the wait is
+ * however long auth takes rather than 1.7 seconds on top of it.
+ *
+ * The view underneath is the brand background rather than nothing, so the
+ * single frame between the splash hiding and the next screen drawing is the
+ * same colour as both, not white.
+ */
 export default function Splash() {
   const router = useRouter()
   const { ready, isSignedIn, user } = useAuth()
-  const { width, height } = useLayout()
 
-  // Sized from the screen so it never crowds a small phone or look lost on a
-  // tablet.
-  const logoSize = Math.round(Math.min(width * 0.56, height * 0.28))
-
-  const lift = useSharedValue(0)
-  const scale = useSharedValue(0.92)
-  const opacity = useSharedValue(0)
+  /** Routing happens once. A second pass would fight the navigator. */
+  const routed = useRef(false)
 
   useEffect(() => {
-    opacity.value = withTiming(1, { duration: 420 })
-    scale.value = withSequence(
-      withTiming(1.04, { duration: 380, easing: Easing.out(Easing.quad) }),
-      withSpring(1, { damping: 12, stiffness: 140 }),
-    )
-    lift.value = withDelay(240, withSpring(-14, { damping: 15, stiffness: 120 }))
-  }, [lift, opacity, scale])
+    if (!ready || routed.current) return
 
+    routed.current = true
 
-  // Handed over once this screen has actually painted, so the native splash
-  // gives way to the animated one rather than to a blank frame. The fade is
-  // what makes the two read as a single screen — they draw the same logo on the
-  // same background, so nothing should visibly change at the swap.
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      BootSplash.hide({ fade: true }).catch(() => {
-        // Already hidden, or no native splash in this build. Either way the
-        // screen underneath is the one being shown.
-      })
-    }, 0)
+    router.replace(isSignedIn ? routeAfterAuth(user) : '/onboarding')
 
-    return () => clearTimeout(timer)
-  }, [])
-
-  useEffect(() => {
-
-    if (!ready) return undefined
-
-    let cancelled = false
-
-    const timer = setTimeout(() => {
-      if (cancelled) return
-      router.replace(isSignedIn ? routeAfterAuth(user) : '/onboarding')
-    }, MIN_VISIBLE_MS)
-
-    return () => {
-      cancelled = true
-      clearTimeout(timer)
-    }
+    // After the navigation, not before. Hiding first would show this empty
+    // background for a frame, which is the flash the splash exists to prevent.
+    BootSplash.hide({ fade: true }).catch(() => {
+      // Already hidden, or no native splash in this build. Either way the
+      // screen underneath is the one being shown.
+    })
   }, [isSignedIn, ready, router, user])
 
-  const logoStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-    transform: [{ translateY: lift.value }, { scale: scale.value }],
-  }))
-
-  return (
-    <View style={styles.screen}>
-      {/* Soft brand blobs, kept well behind the logo. */}
-      <View style={[styles.blob, styles.blobTop]} />
-      <View style={[styles.blob, styles.blobBottom]} />
-
-      {/* The logo already carries the wordmark and the tagline, so there is no
-          separate text to animate in underneath it. */}
-      <Animated.Image
-        source={require('@assets/logo.png')}
-        style={[{ width: logoSize, height: logoSize }, logoStyle]}
-        resizeMode="contain"
-      />
-
-      <View style={styles.dots}>
-        {[0, 1, 2].map((i) => (
-          <LoadingDot key={i} index={i} />
-        ))}
-      </View>
-    </View>
-  )
+  return <View style={styles.screen} />
 }
 
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: SPLASH_BACKGROUND,
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-  },
-  blob: {
-    position: 'absolute',
-    borderRadius: radii.pill,
-  },
-  blobTop: {
-    width: 320,
-    height: 320,
-    top: -110,
-    right: -90,
-    backgroundColor: colors.primary[100],
-  },
-  blobBottom: {
-    width: 380,
-    height: 380,
-    bottom: -150,
-    left: -120,
-    backgroundColor: colors.secondary[100],
-  },
-  dots: {
-    position: 'absolute',
-    bottom: 72,
-    flexDirection: 'row',
-    gap: 10,
-  },
-  dot: {
-    width: 9,
-    height: 9,
-    borderRadius: radii.pill,
-    backgroundColor: colors.primary[400],
   },
 })
