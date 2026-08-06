@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Animated, Easing, StyleSheet, View } from 'react-native'
+import { Animated, Dimensions, Easing, StyleSheet, View } from 'react-native'
 
 import { colors } from '../theme'
 
@@ -77,14 +77,41 @@ function makePieces(count) {
 }
 
 export default function Confetti({ count = 70 }) {
-  const [size, setSize] = useState(null)
+  /**
+   * Seeded from the window rather than waiting for `onLayout`.
+   *
+   * Waiting was the third way this failed to appear. The host is an absolutely
+   * positioned view inside a Reanimated view inside a `Modal`, and in that
+   * nesting `onLayout` can report 0x0 or never fire at all — leaving `size`
+   * null, no pieces rendered, and nothing at all in the logs to say why.
+   *
+   * The reason it waited was to avoid starting before the burst could be seen.
+   * That is already handled, and better, by the caller: `RewardModal` only
+   * mounts this once the modal window is actually up. So the size no longer has
+   * to carry that job, and the window is the right measurement anyway — the
+   * host fills a full-screen scrim.
+   *
+   * `onLayout` still refines it if it arrives with something real, but nothing
+   * depends on it now.
+   */
+  const [size, setSize] = useState(() => {
+    const { width, height } = Dimensions.get('window')
+
+    return width > 0 && height > 0 ? { width, height } : null
+  })
+
   const clock = useRef(new Animated.Value(0)).current
   const pieces = useMemo(() => makePieces(count), [count])
 
-  // Started from the layout callback, not from mount: this is the first moment
-  // the view provably exists at a known size, which is exactly what the two
-  // previous versions were missing.
   useEffect(() => {
+    // Logged because this has now failed to appear three times, each time
+    // silently: nothing throws when a burst never starts.
+    if (__DEV__) {
+      console.log(
+        size ? `[confetti] starting ${size.width}x${size.height}` : '[confetti] no size, not starting',
+      )
+    }
+
     if (!size) return undefined
 
     const animation = Animated.timing(clock, {
@@ -104,8 +131,9 @@ export default function Confetti({ count = 70 }) {
       style={styles.host}
       onLayout={(event) => {
         const { width, height } = event.nativeEvent.layout
-        // Only once. A re-layout mid-burst would restart the animation and the
-        // pieces would jump back to the corners.
+        // Only once, and only if nothing has been measured yet. A re-layout
+        // mid-burst would restart the animation and the pieces would jump back
+        // to the corners.
         if (width > 0 && height > 0) setSize((current) => current ?? { width, height })
       }}
     >
