@@ -330,7 +330,7 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: radii.md,
-    backgroundColor: 'rgba(255,255,255,0.22)',
+    backgroundColor: colors.overlay.light,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -341,7 +341,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bodyBold,
     fontSize: 10,
     letterSpacing: 0.9,
-    color: 'rgba(255,255,255,0.85)',
+    color: colors.overlay.textLight,
   },
   unitTitle: {
     fontFamily: fonts.display,

@@ -614,7 +614,7 @@ const styles = StyleSheet.create({
   statDivider: {
     width: 1,
     height: 24,
-    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    backgroundColor: colors.overlay.light,
   },
   body: {
     alignSelf: 'center',

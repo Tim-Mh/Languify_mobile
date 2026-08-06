@@ -183,7 +183,7 @@ export default function Profile() {
                     // plum gradient, so the default grey placeholder is barely
                     // legible against it.
                     placeholder={t('m_profile_name_placeholder')}
-                    placeholderTextColor="rgba(255,255,255,0.6)"
+                    placeholderTextColor={colors.overlay.textFaint}
                     style={styles.nameInput}
                   />
                   <Pressable
@@ -484,7 +484,7 @@ const styles = StyleSheet.create({
     width: 26,
     height: 26,
     borderRadius: radii.pill,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: colors.overlay.light,
     alignItems: 'center',
     justifyContent: 'center',
   },

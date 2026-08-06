@@ -58,7 +58,7 @@ export default function ConfirmDialog({
 const styles = StyleSheet.create({
   scrim: {
     flex: 1,
-    backgroundColor: 'rgba(40, 27, 55, 0.55)',
+    backgroundColor: colors.overlay.scrim,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: spacing.lg,

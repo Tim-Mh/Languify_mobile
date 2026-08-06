@@ -46,9 +46,9 @@ function formatCountdown(totalSeconds) {
 
 /** Gold, silver and bronze, for the podium and the medal rings. */
 const MEDALS = {
-  1: { ring: '#FFD700', chip: '#FFB800', text: colors.secondary[900] },
-  2: { ring: '#C0C0C0', chip: '#B8B8B8', text: colors.secondary[900] },
-  3: { ring: '#CD7F32', chip: '#B4692C', text: colors.white },
+  1: { ring: colors.medal.gold.ring, chip: colors.medal.gold.chip, text: colors.secondary[900] },
+  2: { ring: colors.medal.silver.ring, chip: colors.medal.silver.chip, text: colors.secondary[900] },
+  3: { ring: colors.medal.bronze.ring, chip: colors.medal.bronze.chip, text: colors.white },
 }
 
 /** Visual order of the podium: runner-up, winner, third. */
@@ -124,7 +124,7 @@ export default function Leaderboard() {
 
                 <View style={styles.bannerFacts}>
                   <View style={styles.bannerFact}>
-                    <Timer size={13} color="rgba(255,255,255,0.9)" strokeWidth={2.4} />
+                    <Timer size={13} color={colors.overlay.textLight} strokeWidth={2.4} />
                     <Text style={styles.bannerFactText}>
                       {t('m_league_time_left', {
                         time: formatCountdown(league.secondsUntilRollover),
@@ -132,7 +132,7 @@ export default function Leaderboard() {
                     </Text>
                   </View>
                   <View style={styles.bannerFact}>
-                    <Users size={13} color="rgba(255,255,255,0.9)" strokeWidth={2.4} />
+                    <Users size={13} color={colors.overlay.textLight} strokeWidth={2.4} />
                     <Text style={styles.bannerFactText}>
                       {t('m_league_learners', { n: league.cohortSize })}
                     </Text>
@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    backgroundColor: 'rgba(255,255,255,0.18)',
+    backgroundColor: colors.overlay.light,
     borderRadius: radii.pill,
     paddingHorizontal: 10,
     paddingVertical: 5,

@@ -398,7 +398,7 @@ const styles = StyleSheet.create({
     width: 68,
     height: 68,
     borderRadius: radii.pill,
-    backgroundColor: 'rgba(255, 255, 255, 0.22)',
+    backgroundColor: colors.overlay.light,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -417,7 +417,7 @@ const styles = StyleSheet.create({
   heroSub: {
     fontFamily: fonts.body,
     fontSize: 13.5,
-    color: 'rgba(255, 255, 255, 0.9)',
+    color: colors.overlay.textLight,
     marginTop: 6,
     textAlign: 'center',
   },

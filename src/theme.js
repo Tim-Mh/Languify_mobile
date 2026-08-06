@@ -69,6 +69,54 @@ export const colors = {
   surface: '#fff8fc',
   surfaceMuted: '#f8d8f0',
   white: '#ffffff',
+
+  /**
+   * Translucent layers, for anything sitting on top of a gradient, a photo or
+   * an uploaded creative.
+   *
+   * Ready-made rgba strings rather than a colour plus an `opacity` prop,
+   * because opacity fades a whole view and its children — a chip drawn that way
+   * takes its label down with it. These are backgrounds, borders and text
+   * colours that need to be translucent *themselves*.
+   *
+   * The screens previously carried eleven slightly different literals for these
+   * (white at .18, .20, .22, .45, .60, .85, .90; black at .18, .34, .55). The
+   * near-duplicates are consolidated here: the difference between an 18% and a
+   * 22% white wash is not visible, and having one of each is the point of a
+   * palette.
+   */
+  overlay: {
+    /** Chips, dividers and icon wells on a gradient header. */
+    light: 'rgba(255, 255, 255, 0.2)',
+    /** A firmer edge on the same, where it has to hold against artwork. */
+    lightStrong: 'rgba(255, 255, 255, 0.45)',
+    /** Body copy on a gradient, one step back from pure white. */
+    textLight: 'rgba(255, 255, 255, 0.9)',
+    /** Placeholder text on a gradient, which must read as unfilled. */
+    textFaint: 'rgba(255, 255, 255, 0.6)',
+
+    /** Behind a modal card. `secondary[900]` at 55%. */
+    scrim: 'rgba(40, 27, 55, 0.55)',
+    /** Wash over an avatar tile that is locked. */
+    tileWash: 'rgba(0, 0, 0, 0.34)',
+    /** The same, for a tile that is merely selected. */
+    tileWashSoft: 'rgba(0, 0, 0, 0.18)',
+    /** A plate for text laid over an uploaded creative of unknown colour. */
+    plate: 'rgba(0, 0, 0, 0.55)',
+    /** The interstitial's footer, which has to stay legible over anything. */
+    plateDeep: 'rgba(20, 13, 28, 0.82)',
+  },
+
+  /**
+   * The podium. Not brand colours and not on the ramp above: gold, silver and
+   * bronze have to look like the metals or the leaderboard stops reading at a
+   * glance, so they are their own small set.
+   */
+  medal: {
+    gold: { ring: '#FFD700', chip: '#FFB800' },
+    silver: { ring: '#C0C0C0', chip: '#B8B8B8' },
+    bronze: { ring: '#CD7F32', chip: '#B4692C' },
+  },
 }
 
 /** The colour behind the native splash, reused by the JS splash for a seamless handoff. */

@@ -523,7 +523,7 @@ const styles = StyleSheet.create({
     gap: 1,
     // Light enough that the face or the colour underneath is still legible: a
     // locked option has to look worth buying, not blanked out.
-    backgroundColor: 'rgba(0, 0, 0, 0.34)',
+    backgroundColor: colors.overlay.tileWash,
     // Both, because the two platforms decide sibling order differently, and the
     // image beneath is a native view.
     zIndex: 2,
@@ -531,7 +531,7 @@ const styles = StyleSheet.create({
   },
   // The tick needs no wash behind it — nothing is being hidden.
   overlayClear: {
-    backgroundColor: 'rgba(0, 0, 0, 0.18)',
+    backgroundColor: colors.overlay.tileWashSoft,
   },
   lockPrice: {
     flexDirection: 'row',

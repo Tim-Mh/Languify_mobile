@@ -8,6 +8,8 @@ import {
 } from '@react-native-firebase/messaging'
 import DeviceInfo from 'react-native-device-info'
 
+import { colors } from '../theme'
+
 /**
  * Remote push: permission, the device's push token, and the Android channels
  * the token's notifications arrive on.
@@ -67,8 +69,15 @@ export const CHANNELS = [
   { id: 'billing', name: 'Subscription and billing', importance: AndroidImportance.HIGH },
 ]
 
-/** Brand pink, used for the small icon tint and the notification light. */
-const ACCENT = '#e040a0'
+/**
+ * Brand pink, for the small icon tint and the notification light.
+ *
+ * Taken from the palette rather than written out, so it cannot drift from the
+ * app. Note the Android manifest carries its own copy in
+ * `res/values/colors.xml` for notifications drawn by the system before any JS
+ * has run; that one has to be kept in step by hand.
+ */
+const ACCENT = colors.primary[500]
 
 /**
  * The token this launch was issued, kept so sign-out can tell the backend to

@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native'
 import Svg, { Circle, G, Path, Rect } from 'react-native-svg'
 
+import { flag } from '../styles/marks'
 import { radii } from '../theme'
 
 /**
@@ -15,11 +16,11 @@ const STRIPE = 16 / 13
 function UsFlag() {
   return (
     <Svg viewBox="0 0 24 16" width="100%" height="100%">
-      <Rect width="24" height="16" fill="#fff" />
+      <Rect width="24" height="16" fill={flag.en.field} />
       {Array.from({ length: 7 }, (_, i) => (
-        <Rect key={i} y={i * 2 * STRIPE} width="24" height={STRIPE} fill="#B22234" />
+        <Rect key={i} y={i * 2 * STRIPE} width="24" height={STRIPE} fill={flag.en.stripe} />
       ))}
-      <Rect width="10" height={7 * STRIPE} fill="#3C3B6E" />
+      <Rect width="10" height={7 * STRIPE} fill={flag.en.canton} />
     </Svg>
   )
 }
@@ -27,8 +28,8 @@ function UsFlag() {
 function EsFlag() {
   return (
     <Svg viewBox="0 0 24 16" width="100%" height="100%">
-      <Rect width="24" height="16" fill="#AA151B" />
-      <Rect y="4" width="24" height="8" fill="#F1BF00" />
+      <Rect width="24" height="16" fill={flag.es.band} />
+      <Rect y="4" width="24" height="8" fill={flag.es.centre} />
     </Svg>
   )
 }
@@ -36,9 +37,9 @@ function EsFlag() {
 function DeFlag() {
   return (
     <Svg viewBox="0 0 24 16" width="100%" height="100%">
-      <Rect width="24" height="16" fill="#FFCE00" />
-      <Rect width="24" height="5.34" fill="#000" />
-      <Rect y="5.33" width="24" height="5.34" fill="#D00" />
+      <Rect width="24" height="16" fill={flag.de.top} />
+      <Rect width="24" height="5.34" fill={flag.de.black} />
+      <Rect y="5.33" width="24" height="5.34" fill={flag.de.red} />
     </Svg>
   )
 }
@@ -46,9 +47,9 @@ function DeFlag() {
 function FrFlag() {
   return (
     <Svg viewBox="0 0 24 16" width="100%" height="100%">
-      <Rect width="24" height="16" fill="#fff" />
-      <Rect width="8" height="16" fill="#002395" />
-      <Rect x="16" width="8" height="16" fill="#ED2939" />
+      <Rect width="24" height="16" fill={flag.fr.field} />
+      <Rect width="8" height="16" fill={flag.fr.blue} />
+      <Rect x="16" width="8" height="16" fill={flag.fr.red} />
     </Svg>
   )
 }
@@ -56,8 +57,8 @@ function FrFlag() {
 function JpFlag() {
   return (
     <Svg viewBox="0 0 24 16" width="100%" height="100%">
-      <Rect width="24" height="16" fill="#fff" />
-      <Circle cx="12" cy="8" r="4.6" fill="#BC002D" />
+      <Rect width="24" height="16" fill={flag.ja.field} />
+      <Circle cx="12" cy="8" r="4.6" fill={flag.ja.disc} />
     </Svg>
   )
 }
@@ -65,16 +66,16 @@ function JpFlag() {
 function KrFlag() {
   return (
     <Svg viewBox="0 0 24 16" width="100%" height="100%">
-      <Rect width="24" height="16" fill="#fff" />
+      <Rect width="24" height="16" fill={flag.ko.field} />
       <Path
         d="M12 4.2 A3.8 3.8 0 0 1 12 11.8 A1.9 1.9 0 0 1 12 8 A1.9 1.9 0 0 0 12 4.2 Z"
-        fill="#CD2E3A"
+        fill={flag.ko.red}
       />
       <Path
         d="M12 4.2 A3.8 3.8 0 0 0 12 11.8 A1.9 1.9 0 0 1 12 8 A1.9 1.9 0 0 0 12 4.2 Z"
-        fill="#0047A0"
+        fill={flag.ko.blue}
       />
-      <G stroke="#000" strokeWidth="0.6">
+      <G stroke={flag.ko.trigram} strokeWidth="0.6">
         <Path d="M4 4.5 h3 M4 5.3 h3 M4 6.1 h3" />
         <Path d="M17 4.5 h3 M17 5.3 h3 M17 6.1 h3" />
         <Path d="M4 9.9 h1.2 M6.1 9.9 h1.9 M4 10.7 h3 M4 11.5 h1.2 M6.1 11.5 h1.9" />

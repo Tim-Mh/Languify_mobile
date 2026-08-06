@@ -147,8 +147,8 @@ const styles = StyleSheet.create({
     left: spacing.md,
     borderRadius: 4,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.45)',
-    backgroundColor: 'rgba(0,0,0,0.55)',
+    borderColor: colors.overlay.lightStrong,
+    backgroundColor: colors.overlay.plate,
     paddingHorizontal: 6,
     paddingVertical: 2,
   },
@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
     paddingTop: spacing.lg,
     // Sits over the bottom of the creative, so the button is always reachable
     // and always legible whatever the artwork is doing behind it.
-    backgroundColor: 'rgba(20, 13, 28, 0.82)',
+    backgroundColor: colors.overlay.plateDeep,
     borderTopLeftRadius: radii.xl,
     borderTopRightRadius: radii.xl,
   },
