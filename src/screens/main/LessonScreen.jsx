@@ -344,7 +344,10 @@ function LessonPlayer({ id, chapterId }) {
               },
             ]
           : []),
-        { kind: 'streak', value: summary.streak ?? 0, label: t('m_day_streak') },
+        // No streak tile. The popup is for what this session *earned*, and the
+        // streak is a running total that was already on screen before the
+        // lesson started — it read as a reward when it is really just status,
+        // and it was the one tile that appeared even when nothing was won.
       ]
     : []
 

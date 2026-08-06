@@ -23,6 +23,7 @@ import { useAuth } from '../auth/AuthContext'
 
 const STRINGS = {
   en: {
+    m_heart_one: "Heart",
     m_hearts_plan_includes: "Your plan includes them, so you never run out.",
     m_league_tier_bronze: "Bronze",
     m_league_tier_silver: "Silver",
@@ -1174,6 +1175,7 @@ const STRINGS = {
     m_ad_a11y_plain: "Advertisement, opens in a browser",
   },
   fr: {
+    m_heart_one: "Cœur",
     m_hearts_plan_includes: "Votre formule les inclut : vous n’en manquerez jamais.",
     m_league_tier_bronze: "Bronze",
     m_league_tier_silver: "Argent",
@@ -2326,6 +2328,7 @@ const STRINGS = {
     m_ad_a11y_plain: "Publicité, s’ouvre dans un navigateur",
   },
   es: {
+    m_heart_one: "Corazón",
     m_hearts_plan_includes: "Tu plan los incluye, así que nunca te quedas sin ellos.",
     m_league_tier_bronze: "Bronce",
     m_league_tier_silver: "Plata",
@@ -3477,6 +3480,7 @@ const STRINGS = {
     m_ad_a11y_plain: "Anuncio, se abre en el navegador",
   },
   de: {
+    m_heart_one: "Herz",
     m_hearts_plan_includes: "Dein Tarif enthält sie, dir gehen sie also nie aus.",
     m_league_tier_bronze: "Bronze",
     m_league_tier_silver: "Silber",
@@ -4629,6 +4633,7 @@ const STRINGS = {
     m_ad_a11y_plain: "Werbung, öffnet im Browser",
   },
   ja: {
+    m_heart_one: "ハート",
     m_hearts_plan_includes: "ご利用中のプランに含まれているので、なくなることはありません。",
     m_league_tier_bronze: "ブロンズ",
     m_league_tier_silver: "シルバー",
@@ -5779,6 +5784,7 @@ const STRINGS = {
     m_ad_a11y_plain: "広告。ブラウザで開きます。",
   },
   ko: {
+    m_heart_one: "하트",
     m_hearts_plan_includes: "현재 플랜에 포함되어 있어 떨어질 일이 없습니다.",
     m_league_tier_bronze: "브론즈",
     m_league_tier_silver: "실버",
@@ -6929,6 +6935,7 @@ const STRINGS = {
     m_ad_a11y_plain: "광고, 브라우저에서 열려요",
   },
   tr: {
+    m_heart_one: "Kalp",
     m_hearts_plan_includes: "Planınıza dahil, bu yüzden hiç bitmez.",
     m_league_tier_bronze: "Bronz",
     m_league_tier_silver: "Gümüş",

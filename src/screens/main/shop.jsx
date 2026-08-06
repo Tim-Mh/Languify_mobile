@@ -72,7 +72,11 @@ export default function Shop() {
       title: t('m_shop_hearts_done'),
       subtitle: t('m_shop_hearts_sub'),
       rewards: [
-        { kind: 'badge', value: `+${tier.hearts}`, label: tier.hearts === 1 ? 'Heart' : 'Hearts' },
+        {
+          kind: 'badge',
+          value: `+${tier.hearts}`,
+          label: tier.hearts === 1 ? t('m_heart_one') : t('m_hearts'),
+        },
         { kind: 'gems', value: `-${tier.priceGems}`, label: t('m_shop_gems_spent') },
       ],
     })
