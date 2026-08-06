@@ -13,9 +13,20 @@ import api from './client'
  * who is signed out must still be able to read the terms they are agreeing to.
  */
 
-/** `slug` is `terms` or `privacy`. Returns `{ slug, title, content, updatedAt }`. */
-export function legalPage(slug) {
-  return api.get(`/pages/${slug}`, { auth: false })
+/**
+ * `slug` is `terms` or `privacy`.
+ *
+ * `locale` is the learner's own language. The backend keeps one row per page
+ * per language and falls back to English for anything not translated yet, so
+ * this never returns an empty page and the response says which locale it
+ * actually served.
+ *
+ * Returns `{ slug, locale, title, content, updatedAt }`.
+ */
+export function legalPage(slug, locale) {
+  const query = locale ? `?locale=${encodeURIComponent(locale)}` : ''
+
+  return api.get(`/pages/${slug}${query}`, { auth: false })
 }
 
 /**

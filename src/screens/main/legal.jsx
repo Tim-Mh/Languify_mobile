@@ -10,7 +10,7 @@ import { useLocalSearchParams } from '@/navigation'
 import QueryState from '@/components/QueryState'
 import { legalPage } from '@/api/pages'
 import { openInAppBrowser } from '@/lib/browser'
-import { useTranslate } from '@/lib/i18n'
+import { useLanguageCode, useTranslate } from '@/lib/i18n'
 import { useLayout } from '@/lib/responsive'
 import { useGoBack } from '@/lib/useGoBack'
 import { colors, fonts, radii, spacing } from '@/theme'
@@ -37,9 +37,15 @@ export default function LegalScreen() {
   const { slug } = useLocalSearchParams()
   const pageSlug = slug === 'privacy' ? 'privacy' : 'terms'
 
+  // The learner's own language, not the one they are learning: this is the
+  // app talking to them, not content to study.
+  const locale = useLanguageCode()
+
   const query = useQuery({
-    queryKey: ['legalPage', pageSlug],
-    queryFn: () => legalPage(pageSlug),
+    // Keyed on the locale too, or switching language would show the previous
+    // language's cached page.
+    queryKey: ['legalPage', pageSlug, locale],
+    queryFn: () => legalPage(pageSlug, locale),
     // Legal copy changes a few times a year at most, so re-reading it on every
     // visit is wasted traffic on a phone.
     staleTime: 60 * 60 * 1000,
