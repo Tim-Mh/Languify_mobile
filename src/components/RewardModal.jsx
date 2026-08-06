@@ -76,8 +76,12 @@ export default function RewardModal({
    * and means a new reward popup gets both for free.
    */
   useEffect(() => {
+    // Both the sound and the burst hang off `live`, so when neither happens
+    // this is the first thing worth knowing. Dev builds only.
+    if (__DEV__) console.log(`[reward] live=${live} celebrate=${celebrate} visible=${visible}`)
+
     if (live && celebrate) sounds.complete()
-  }, [live, celebrate])
+  }, [live, celebrate, visible])
 
   return (
     <Modal
