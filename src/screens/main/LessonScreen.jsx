@@ -328,7 +328,13 @@ function LessonPlayer({ id, chapterId }) {
 
   const rewards = summary
     ? [
-        { kind: 'xp', value: `+${summary.xpAwarded ?? 0}`, label: t('m_xp') },
+        // Conditional like the gem tiles below it. Replaying a finished lesson
+        // now earns nothing, and an unconditional tile would announce "+0 XP"
+        // as though that were a prize. RewardModal already renders title and
+        // subtitle alone when no tile survives.
+        ...(summary.xpAwarded
+          ? [{ kind: 'xp', value: `+${summary.xpAwarded}`, label: t('m_xp') }]
+          : []),
         ...(summary.unitBonusGems
           ? [{ kind: 'gems', value: `+${summary.unitBonusGems}`, label: t('m_bonus_gems') }]
           : []),
@@ -536,11 +542,16 @@ function LessonPlayer({ id, chapterId }) {
       <RewardModal
         visible={summary !== null && !adPending}
         title={summary?.mastered ? t('m_lesson_mastered') : t('m_lesson_complete')}
+        // A replay is checked FIRST. It used to sit behind the flawless test,
+        // so a clean run through an already-finished lesson was congratulated
+        // for a score while quietly paying nothing; naming it as practice is
+        // the honest line, and it is the only one that explains the missing
+        // reward tiles.
         subtitle={
-          mistakes === 0
-            ? t('m_flawless')
-            : summary?.alreadyCompletedBefore
-              ? t('m_practice_sticks')
+          summary?.alreadyMastered
+            ? t('m_practice_sticks')
+            : mistakes === 0
+              ? t('m_flawless')
               : t('m_nice_work')
         }
         rewards={rewards}

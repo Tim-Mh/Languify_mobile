@@ -92,3 +92,4 @@ export const typography = StyleSheet.create({
 })
 
 export default typography
+

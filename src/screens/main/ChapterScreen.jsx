@@ -146,13 +146,19 @@ export default function ChapterPath() {
                     <View style={styles.unitIcon}>
                       <BookOpen size={19} color={colors.white} strokeWidth={2.2} />
                     </View>
+                    {/* The chapter, then the unit's number. The stored unit
+                        title carries a descriptive theme after the number
+                        ("Unit 1: At the Café") which was asked to come off, and
+                        numbering from the unit's position rather than parsing
+                        that string also means this reads in the learner's own
+                        language instead of the course's. It replaces a
+                        hardcoded English "UNIT" that never translated. */}
                     <View style={styles.unitCopy}>
                       <Text style={styles.unitEyebrow} numberOfLines={1}>
-                        {(unitsQuery.data?.chapter?.title ?? '').toUpperCase()} · UNIT{' '}
-                        {unitIndex + 1}
+                        {(unitsQuery.data?.chapter?.title ?? '').toUpperCase()}
                       </Text>
                       <Text style={styles.unitTitle} numberOfLines={2}>
-                        {unit.title}
+                        {t('units_unit_number', { n: unitIndex + 1 })}
                       </Text>
                     </View>
                   </LinearGradient>
@@ -202,9 +208,13 @@ export default function ChapterPath() {
                                 top: y - NODE_SIZE / 2 - RING_GAP,
                               }}
                             >
-                              {/* The ring is the lesson's sessions: each lesson
-                                  is completed `targetCompletions` times, and the
-                                  arc is how many of those are done. */}
+                              {/* How many plays a lesson takes is the server's
+                                  call, so the arc is drawn from the numbers it
+                                  sends rather than from an assumption here. It
+                                  is one play today, which makes the ring go
+                                  straight from empty to full; raising the
+                                  target on the server brings partial fills back
+                                  with no change on this side. */}
                               <ProgressRing
                                 percent={
                                   lesson.targetCompletions
@@ -227,7 +237,16 @@ export default function ChapterPath() {
                                 />
                                 <Pressable
                                   accessibilityRole="button"
-                                  accessibilityLabel={`${lesson.title}, ${lesson.completionsCount ?? 0} of ${lesson.targetCompletions ?? 0} sessions done`}
+                                  // Was a hardcoded English "N of M sessions
+                                  // done", which never translated and no longer
+                                  // describes anything: a lesson is one sitting,
+                                  // so it is simply done or not.
+                                  accessibilityLabel={[
+                                    lesson.title,
+                                    lesson.completed ? t('completed') : isLocked ? t('locked') : null,
+                                  ]
+                                    .filter(Boolean)
+                                    .join(', ')}
                                   accessibilityState={{ disabled: isLocked }}
                                   onPress={() => openLesson(lesson, isLocked)}
                                   style={({ pressed }) => [

@@ -41,13 +41,17 @@ export default function Splash() {
 
     routed.current = true
 
-    router.replace(isSignedIn ? routeAfterAuth(user) : '/onboarding')
-
-    // After the navigation, not before. Hiding first would show this empty
-    // background for a frame, which is the flash the splash exists to prevent.
-    BootSplash.hide({ fade: true }).catch(() => {
-      // Already hidden, or no native splash in this build. Either way the
-      // screen underneath is the one being shown.
+    // Hiding is a CALLBACK rather than the next statement. A navigation asked
+    // for before the container is ready gets queued and applied later, so
+    // hiding here would tear the native splash down while this screen — which
+    // draws nothing but a background colour — is still the one on top. That is
+    // the blank screen after the logo. Now the splash stays up until the first
+    // real route is actually on screen, however long that takes.
+    router.replace(isSignedIn ? routeAfterAuth(user) : '/onboarding', () => {
+      BootSplash.hide({ fade: true }).catch(() => {
+        // Already hidden, or no native splash in this build. Either way the
+        // screen underneath is the one being shown.
+      })
     })
   }, [isSignedIn, ready, router, user])
 

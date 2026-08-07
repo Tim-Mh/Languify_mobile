@@ -95,18 +95,24 @@ function resetTo(target) {
   if (target.screen) navigateTo(target)
 }
 
-function push(href) {
+/**
+ * @param onApplied run once the navigation has actually been dispatched, which
+ *                  is NOT the same moment as the call when the container is not
+ *                  ready yet and the request goes into the queue above.
+ */
+function push(href, onApplied) {
   const target = resolvePath(href)
   if (!target) return
 
   // Held rather than dropped. See `pendingNavigation`.
   if (!navigationRef.isReady()) {
-    pendingNavigation = () => navigateTo(target)
+    pendingNavigation = () => push(href, onApplied)
 
     return
   }
 
   navigateTo(target)
+  onApplied?.()
 }
 
 /**
@@ -122,7 +128,15 @@ function push(href) {
  *   returning to a screen the learner has already finished with.
  * - Between roots, reset, so the whole flow that led here is gone.
  */
-function replace(href) {
+/**
+ * @param onApplied run once the navigation has actually been dispatched. The
+ *                  splash uses it to decide when to take the native splash
+ *                  down: hiding it on the call instead means hiding it while
+ *                  the request is still sitting in the queue below, which
+ *                  reveals the splash screen's own empty background until the
+ *                  container catches up.
+ */
+function replace(href, onApplied) {
   const target = resolvePath(href)
   if (!target) return
 
@@ -130,7 +144,7 @@ function replace(href) {
   // screen: the splash replaces itself with the first real route the moment
   // auth resolves, which can be before the container is ready.
   if (!navigationRef.isReady()) {
-    pendingNavigation = () => replace(href)
+    pendingNavigation = () => replace(href, onApplied)
 
     return
   }
@@ -139,20 +153,24 @@ function replace(href) {
 
   if (from !== target.root) {
     resetTo(target)
+    onApplied?.()
     return
   }
 
   if (target.root === ROOT.MAIN) {
     navigateTo(target)
+    onApplied?.()
     return
   }
 
   if (target.screen) {
     navigationRef.dispatch(StackActions.replace(target.screen, target.params))
+    onApplied?.()
     return
   }
 
   navigateTo(target)
+  onApplied?.()
 }
 
 function back() {
