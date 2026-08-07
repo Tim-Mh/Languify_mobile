@@ -9,7 +9,8 @@
     "start": "react-native start",
     "bundle:android": "react-native bundle --platform android --dev false --entry-file index.js --bundle-output /tmp/android.bundle",
     "bundle:ios": "react-native bundle --platform ios --dev false --entry-file index.js --bundle-output /tmp/ios.bundle",
-    "postinstall": "patch-package"
+    "postinstall": "patch-package",
+    "android:fast": "react-native run-android --active-arch-only"
   },
   "dependencies": {
     "@dicebear/adventurer": "^9.4.2",
