@@ -21,6 +21,33 @@ import { ROOT, resolvePath } from './routeMap'
  * are unchanged apart from which module they import it from.
  */
 
+/**
+ * A navigation asked for before the container was ready, held until it is.
+ *
+ * React runs a child's effects before its parent's, so a screen that navigates
+ * from its own mount effect — which the splash does, as soon as auth resolves —
+ * runs *before* `NavigationContainer` has marked its ref ready. These calls used
+ * to be dropped on the floor, silently: the splash asked to leave, nothing
+ * happened, and because it only asks once the app sat on an empty screen
+ * forever. A 1.7 second delay used to hide this by accident.
+ *
+ * Only the most recent is kept. Two navigations queued before the app has even
+ * drawn means the second one is the answer; replaying both would just flash
+ * through the first.
+ */
+let pendingNavigation = null
+
+/**
+ * Runs whatever was asked for too early. Called from `RootNavigator`'s
+ * `onReady`, which is the moment the ref becomes usable.
+ */
+export function flushPendingNavigation() {
+  const next = pendingNavigation
+  pendingNavigation = null
+
+  if (next) next()
+}
+
 /** The root-navigator screen currently showing, or null before it mounts. */
 function currentRootName() {
   if (!navigationRef.isReady()) return null
@@ -70,7 +97,14 @@ function resetTo(target) {
 
 function push(href) {
   const target = resolvePath(href)
-  if (!target || !navigationRef.isReady()) return
+  if (!target) return
+
+  // Held rather than dropped. See `pendingNavigation`.
+  if (!navigationRef.isReady()) {
+    pendingNavigation = () => navigateTo(target)
+
+    return
+  }
 
   navigateTo(target)
 }
@@ -90,7 +124,16 @@ function push(href) {
  */
 function replace(href) {
   const target = resolvePath(href)
-  if (!target || !navigationRef.isReady()) return
+  if (!target) return
+
+  // Held rather than dropped. This is the one that stranded the app on a blank
+  // screen: the splash replaces itself with the first real route the moment
+  // auth resolves, which can be before the container is ready.
+  if (!navigationRef.isReady()) {
+    pendingNavigation = () => replace(href)
+
+    return
+  }
 
   const from = currentRootName()
 

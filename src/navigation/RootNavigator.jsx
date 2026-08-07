@@ -5,6 +5,7 @@ import AuthStack from './AuthStack'
 import MainTabs from './MainTabs'
 import SetupScreenHost from './SetupScreenHost'
 import { navigationRef } from './navigationRef'
+import { flushPendingNavigation } from './router'
 import { ROOT } from './routeMap'
 import OnboardingScreen from '../screens/onboarding'
 import SplashScreen from '../screens/SplashScreen'
@@ -25,7 +26,17 @@ const Stack = createNativeStackNavigator()
  */
 export default function RootNavigator({ onReady }) {
   return (
-    <NavigationContainer ref={navigationRef} onReady={onReady}>
+    <NavigationContainer
+      ref={navigationRef}
+      onReady={() => {
+        // Anything that asked to navigate before the ref was usable runs now.
+        // Without this a screen that routes from its own mount effect — the
+        // splash does — is silently ignored, because a child's effects run
+        // before its parent's.
+        flushPendingNavigation()
+        onReady?.()
+      }}
+    >
       <Stack.Navigator
         initialRouteName={ROOT.SPLASH}
         screenOptions={{

@@ -33,6 +33,10 @@ export default function Splash() {
   const routed = useRef(false)
 
   useEffect(() => {
+    // This screen renders nothing but the brand background, so when it fails to
+    // route the app looks blank rather than broken. Worth saying out loud.
+    if (__DEV__) console.log(`[splash] ready=${ready} signedIn=${isSignedIn} routed=${routed.current}`)
+
     if (!ready || routed.current) return
 
     routed.current = true

@@ -22,9 +22,18 @@ import { displayPush } from './push'
  * Display goes through the same `displayPush` the foreground handler uses, so a
  * notification looks and behaves identically however it arrived.
  */
-setBackgroundMessageHandler(getMessaging(), async (message) => {
-  await displayPush(message)
-})
+// Wrapped because this runs at module scope from `index.js`. If Firebase is
+// not configured in a given build, `getMessaging()` throws here — and a throw
+// while the entry file is still evaluating takes the entire app down before
+// anything renders, which looks exactly like a blank screen after the splash.
+// Losing background push is survivable; losing the app is not.
+try {
+  setBackgroundMessageHandler(getMessaging(), async (message) => {
+    await displayPush(message)
+  })
+} catch (error) {
+  if (__DEV__) console.warn('[push] background handler not registered', error)
+}
 
 /**
  * Notifee requires a background event handler to exist wherever notifications
@@ -36,4 +45,8 @@ setBackgroundMessageHandler(getMessaging(), async (message) => {
  * reads once auth has resolved. Routing from here instead would fire before the
  * navigator exists and be swallowed.
  */
-notifee.onBackgroundEvent(async () => {})
+try {
+  notifee.onBackgroundEvent(async () => {})
+} catch (error) {
+  if (__DEV__) console.warn('[push] background event handler not registered', error)
+}
