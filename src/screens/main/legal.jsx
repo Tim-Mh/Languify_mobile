@@ -70,11 +70,24 @@ export default function LegalScreen() {
       </View>
 
       <QueryState query={query} errorTitle={t('m_legal_error')}>
-        {(page) => <PageBody html={page?.content ?? ''} />}
+        {/* The locale the API actually served, not the one asked for: a
+            language nobody has translated yet comes back as English, and that
+            English must not be laid out right to left. */}
+        {(page) => <PageBody html={page?.content ?? ''} locale={page?.locale ?? 'en'} />}
       </QueryState>
     </View>
   )
 }
+
+/**
+ * Languages written right to left.
+ *
+ * Declared rather than inferred: `dir="auto"` reads the first strong character
+ * in the document, and these pages open with the product name, which is Latin.
+ * That would lay an entire Arabic page out left to right on the strength of one
+ * word.
+ */
+const RTL_LOCALES = new Set(['ar'])
 
 /**
  * The admin's HTML, wrapped in the app's typography.
@@ -83,11 +96,15 @@ export default function LegalScreen() {
  * content is a fragment: it has no `<head>` of its own to style, and without a
  * viewport meta tag Android renders it at desktop width and the learner has to
  * pinch to read anything.
+ *
+ * Sides are logical rather than physical — `padding-inline-start`, `text-align:
+ * start` — so the same stylesheet mirrors itself for Arabic instead of leaving
+ * list bullets and table cells stranded on the wrong edge.
  */
-function PageBody({ html }) {
+function PageBody({ html, locale }) {
   const document = useMemo(
     () => `<!DOCTYPE html>
-<html>
+<html lang="${locale}" dir="${RTL_LOCALES.has(locale) ? 'rtl' : 'ltr'}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -108,18 +125,18 @@ function PageBody({ html }) {
   h1:first-child, h2:first-child, h3:first-child { margin-top: 0; }
   p { margin: 0 0 1em; }
   a { color: ${colors.primary[600]}; }
-  ul, ol { padding-left: 1.25em; margin: 0 0 1em; }
+  ul, ol { padding-inline-start: 1.25em; margin: 0 0 1em; }
   li { margin-bottom: 0.4em; }
   strong { color: ${colors.secondary[800]}; }
   hr { border: 0; border-top: 1px solid ${colors.secondary[100]}; margin: 1.5em 0; }
   table { width: 100%; border-collapse: collapse; margin: 0 0 1em; }
-  td, th { border: 1px solid ${colors.secondary[100]}; padding: 8px; text-align: left; }
+  td, th { border: 1px solid ${colors.secondary[100]}; padding: 8px; text-align: start; }
   img { max-width: 100%; height: auto; }
 </style>
 </head>
 <body>${html}</body>
 </html>`,
-    [html],
+    [html, locale],
   )
 
   return (
