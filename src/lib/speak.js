@@ -1,5 +1,8 @@
 import { Platform } from 'react-native'
+import Sound from 'react-native-sound'
 import Tts from 'react-native-tts'
+
+import { API_URL } from '../api/client'
 
 /**
  * Reading content aloud.
@@ -118,22 +121,36 @@ ready
 ready.then(() => Tts.setDefaultRate(RATE, true)).catch(() => {})
 
 /**
- * Whether the device can actually say anything in this language.
+ * Whether the **device** can say this language, which is what decides whether
+ * to use the engine or ask the backend for audio.
  *
- * Asking for a language with no voice installed does **not** throw: the call
- * returns, nothing is heard, and the failure arrives on a callback nobody was
- * listening to. Screens use this to say so out loud rather than appearing
- * broken.
+ * Asking the engine for a language with no voice installed does **not** throw:
+ * the call returns, nothing is heard, and the failure arrives on a callback
+ * nobody was listening to. So this has to be checked up front — there is no
+ * error to fall back from afterwards.
  *
  * Optimistic while the enumeration is still in flight, and optimistic if it
- * failed — a wrong "no voice" warning is worse than a missing one.
+ * failed: an engine that cannot list its voices can usually still speak, and
+ * routing every language to the backend because of that would replace good
+ * device voices with a synthetic one for no reason.
  */
-export function hasVoiceFor(languageCode) {
+function deviceHasVoice(languageCode) {
   if (voices === null || voices.length === 0) return true
 
   const wanted = baseLanguage(localeFor(languageCode))
 
   return voices.some((voice) => baseLanguage(voice.language) === wanted)
+}
+
+/**
+ * Whether the learner will hear anything at all in this language, from either
+ * source. Screens use this to say so out loud rather than appearing broken.
+ *
+ * Stays true unless the backend has actually failed, because a wrong "no voice"
+ * warning is worse than a missing one.
+ */
+export function hasVoiceFor(languageCode) {
+  return deviceHasVoice(languageCode) || serverSpeechWorks !== false
 }
 
 /**
@@ -159,13 +176,115 @@ let selectedLocale = null
  * `TextToSpeech.QUEUE_ADD`, so without it four taps play four words back to
  * back long after the learner has moved on.
  */
+/* --------------------------------------------------------------- server */
+
+/**
+ * Audio rendered by our own backend, for the languages this device cannot say.
+ *
+ * Most phones ship voice data only for the languages they were set up in, so
+ * Arabic, Turkish and Azerbaijani are commonly missing — and asking for a
+ * missing one is silent rather than an error, which is what made the speaker
+ * button look dead. The backend renders those with eSpeak NG and caches the
+ * result, so this is a plain audio file over HTTP.
+ *
+ * `react-native-sound` takes a URL directly: it checks `startsWith("http")` on
+ * the filename and treats it as a network resource, which is why no basePath is
+ * given here (see the note in `sounds.js`, where the opposite case bit us).
+ */
+function speechUrl(text, languageCode) {
+  return `${API_URL}/speech?lang=${encodeURIComponent(languageCode)}&text=${encodeURIComponent(text)}`
+}
+
+/**
+ * Whether the backend has managed to speak for us yet.
+ *
+ * Null until something has been tried, and optimistic on purpose: the "no voice
+ * on this device" warning must not appear before we have actually failed to get
+ * audio, because for almost everyone we will not.
+ */
+let serverSpeechWorks = null
+
+// One player at a time, so rapid taps replace each other rather than overlap —
+// the same reason Tts.stop() is called before every utterance. Network players
+// are created per URL and released on completion: keeping them would leak a
+// native audio session per distinct word, which is unbounded.
+let currentSound = null
+
+function releaseCurrent() {
+  if (!currentSound) return
+  try {
+    currentSound.stop()
+    currentSound.release()
+  } catch {
+    // Already gone.
+  }
+  currentSound = null
+}
+
+let categorySet = false
+
+function playFromServer(text, languageCode) {
+  // iOS mutes the default category when the ringer switch is on silent, and a
+  // pronunciation that goes quiet in a quiet room has lost the point. `sounds.js`
+  // sets the same category for the effects; it is a static, idempotent call, and
+  // relying on the effects having played first would be a race.
+  if (!categorySet) {
+    categorySet = true
+    try {
+      Sound.setCategory('Playback', true)
+    } catch {
+      // Android has no audio categories.
+    }
+  }
+
+  releaseCurrent()
+
+  const sound = new Sound(speechUrl(text, languageCode), null, (error) => {
+    if (error) {
+      // Could not load it at all: no engine on the server, or no network.
+      serverSpeechWorks = false
+      try {
+        sound.release()
+      } catch {
+        // Never allocated.
+      }
+      if (currentSound === sound) currentSound = null
+
+      return
+    }
+
+    serverSpeechWorks = true
+    sound.play(() => {
+      try {
+        sound.release()
+      } catch {
+        // Already released by a newer tap.
+      }
+      if (currentSound === sound) currentSound = null
+    })
+  })
+
+  currentSound = sound
+}
+
 export function speak(text, languageCode) {
   if (!text) return
 
   const locale = localeFor(languageCode)
   const utterance = String(text)
 
+  // No voice on the device: the backend is the only way this language is heard.
+  // Checked before the engine call rather than after, because asking the engine
+  // to speak a language it does not have returns happily and plays nothing, so
+  // there is no failure to fall back from.
+  if (!deviceHasVoice(languageCode)) {
+    playFromServer(utterance, languageCode)
+
+    return
+  }
+
   const say = () => {
+    releaseCurrent()
     Tts.stop()
     Tts.speak(utterance)
   }
@@ -182,14 +301,16 @@ export function speak(text, languageCode) {
       say()
     })
     .catch(() => {
-      // A device with no voice for this language, or no engine at all. Silence
-      // is the right fallback; a failed pronunciation must never take the
-      // exercise down. `selectedLocale` stays as it was so the next tap tries
-      // again rather than assuming the language was set.
+      // The engine rejected the language after all, so take the same route as a
+      // device with no voice for it. `selectedLocale` stays as it was, so the
+      // next tap tries the engine again rather than assuming it was set.
+      playFromServer(utterance, languageCode)
     })
 }
 
 export function stopSpeaking() {
+  releaseCurrent()
+
   try {
     Tts.stop()
   } catch {
