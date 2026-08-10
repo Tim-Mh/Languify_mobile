@@ -110,7 +110,9 @@ export default function AddCourse() {
         {
           onSuccess: () => {
             notify.success(t('m_addc_added'))
-            router.replace('/courses')
+            // The new course is now the active one and the cache was cleared,
+            // so home is where the learner should land — same as switching.
+            router.replace('/home')
           },
         },
       )

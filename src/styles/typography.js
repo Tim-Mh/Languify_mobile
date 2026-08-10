@@ -4,7 +4,6 @@ import { colors, fonts } from '../theme'
 
 /**
  * The type ramp, as ready-made text styles.
- *
  * Every entry pairs a family from `theme.fonts` with a colour from
  * `theme.colors` — nothing here invents a value. Poppins carries headings and
  * anything that should feel like the brand; Nunito carries body copy, which is
@@ -39,6 +38,7 @@ export const typography = StyleSheet.create({
     fontSize: 15,
     color: colors.secondary[700],
   },
+  
   /** Body copy that needs a little more weight, e.g. a value beside a label. */
   bodyStrong: {
     fontFamily: fonts.bodySemi,
@@ -92,4 +92,5 @@ export const typography = StyleSheet.create({
 })
 
 export default typography
+
 

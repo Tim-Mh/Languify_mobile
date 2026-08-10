@@ -49,6 +49,25 @@ export const flag = {
     blue: '#0047A0',
     trigram: '#000000',
   },
+  tr: {
+    field: '#E30A17',
+    star: '#ffffff',
+  },
+  ru: {
+    field: '#ffffff',
+    blue: '#0039A6',
+    red: '#D52B1E',
+  },
+  ar: {
+    field: '#165D31',
+    mark: '#ffffff',
+  },
+  az: {
+    blue: '#0092BC',
+    red: '#ED2939',
+    green: '#3F9C35',
+    mark: '#ffffff',
+  },
 }
 
 /**

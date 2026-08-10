@@ -55,9 +55,10 @@ function groupLetters(letters) {
     }
 
     const scriptGroup = byScript[scriptKey]
-    // Latin-script letters are already one English letter per tile, so they
-    // stay in one flat subgroup with no letter sub-header.
-    const subKey = letter.scriptGroup ? (startingLetterOf(letter.romanization) ?? '?') : '_flat'
+    // Only a syllabary gets sub-headers; see the web's LearnAlphabet for why.
+    // Grouping an ALPHABET by its romanization reorders it, which is how the
+    // Arabic chart stopped reading ا…ي.
+    const subKey = scriptKey === '_default' ? '_flat' : (startingLetterOf(letter.romanization) ?? '?')
 
     if (!scriptGroup.bySub[subKey]) {
       scriptGroup.bySub[subKey] = { key: subKey === '_flat' ? null : subKey, letters: [] }

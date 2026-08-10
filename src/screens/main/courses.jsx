@@ -86,7 +86,15 @@ export default function Courses() {
                     !course.isActive &&
                     !busy &&
                     swap.mutate(course.id, {
-                      onSuccess: () => notify.success(t('m_courses_now', { language: course.name })),
+                      onSuccess: () => {
+                        notify.success(t('m_courses_now', { language: course.name }))
+                        // The cache is empty at this point, so every screen
+                        // rebuilds for the new course. Landing on home means the
+                        // learner sees that happen once, on a screen that is
+                        // meant to load, rather than watching the course list
+                        // they are already looking at flicker.
+                        router.replace('/home')
+                      },
                     })
                   }
                   disabled={course.isActive || busy}

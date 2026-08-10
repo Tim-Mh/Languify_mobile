@@ -563,6 +563,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.secondary[400],
     marginTop: spacing.sm,
+    writingDirection: 'auto',
   },
   promptWords: {
     flexDirection: 'row',
@@ -576,11 +577,21 @@ const styles = StyleSheet.create({
   promptPressed: {
     opacity: 0.6,
   },
+  /**
+   * Course text can read either way.
+   *
+   * `writingDirection: 'auto'` lets the platform pick the direction from the
+   * string itself, so an Arabic sentence lays out right to left even while the
+   * rest of the app is left to right — which is exactly the case for an English
+   * speaker taking the Arabic course. It is a no-op for the eight languages
+   * that already read left to right, so it is safe on every shared style.
+   */
   promptText: {
     fontFamily: fonts.display,
     fontSize: 22,
     lineHeight: 31,
     color: colors.secondary[900],
+    writingDirection: 'auto',
   },
   /** Same dashed underline the tappable prompt words use, for the same reason. */
   promptHinted: {
@@ -594,6 +605,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: colors.secondary[400],
     marginTop: 6,
+    writingDirection: 'auto',
   },
   answerRow: {
     flexDirection: 'row',

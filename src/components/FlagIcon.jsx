@@ -85,7 +85,57 @@ function KrFlag() {
   )
 }
 
-const FLAGS = { en: UsFlag, es: EsFlag, de: DeFlag, fr: FrFlag, ja: JpFlag, ko: KrFlag }
+function TrFlag() {
+  return (
+    <Svg viewBox="0 0 24 16" width="100%" height="100%">
+      <Rect width="24" height="16" fill={flag.tr.field} />
+      {/* The crescent is a filled disc with a smaller field-coloured disc
+          punched out of it, offset to the right, as on the real flag. */}
+      <Circle cx="9" cy="8" r="3.2" fill={flag.tr.star} />
+      <Circle cx="10.2" cy="8" r="2.56" fill={flag.tr.field} />
+      <Path d="M13.6 8 L15.9 7.26 L14.47 9.2 L14.47 6.8 L15.9 8.74 Z" fill={flag.tr.star} />
+    </Svg>
+  )
+}
+
+function RuFlag() {
+  return (
+    <Svg viewBox="0 0 24 16" width="100%" height="100%">
+      <Rect width="24" height="16" fill={flag.ru.field} />
+      <Rect y="5.33" width="24" height="5.34" fill={flag.ru.blue} />
+      <Rect y="10.67" width="24" height="5.33" fill={flag.ru.red} />
+    </Svg>
+  )
+}
+
+function SaFlag() {
+  return (
+    <Svg viewBox="0 0 24 16" width="100%" height="100%">
+      <Rect width="24" height="16" fill={flag.ar.field} />
+      {/* A stylised band and sword rather than the shahada itself: the script
+          is unreadable at 24x16 and a smudge reads worse than a clean mark. */}
+      <Rect x="4" y="5.2" width="16" height="1.6" rx="0.8" fill={flag.ar.mark} />
+      <Rect x="4" y="9.4" width="14" height="1" rx="0.5" fill={flag.ar.mark} />
+      <Path d="M18 9.9 L21 8.4 L21 11.4 Z" fill={flag.ar.mark} />
+    </Svg>
+  )
+}
+
+function AzFlag() {
+  return (
+    <Svg viewBox="0 0 24 16" width="100%" height="100%">
+      <Rect width="24" height="16" fill={flag.az.green} />
+      <Rect width="24" height="5.34" fill={flag.az.blue} />
+      <Rect y="5.33" width="24" height="5.34" fill={flag.az.red} />
+      {/* Crescent punched out of a disc, as on the Turkish flag. */}
+      <Circle cx="11" cy="8" r="2.1" fill={flag.az.mark} />
+      <Circle cx="11.8" cy="8" r="1.7" fill={flag.az.red} />
+      <Path d="M14.4 8 L15.9 7.5 L15 8.8 L15 7.2 L15.9 8.5 Z" fill={flag.az.mark} />
+    </Svg>
+  )
+}
+
+const FLAGS = { en: UsFlag, es: EsFlag, de: DeFlag, fr: FrFlag, ja: JpFlag, ko: KrFlag, tr: TrFlag, ru: RuFlag, ar: SaFlag, az: AzFlag }
 
 export default function FlagIcon({ code, emoji, width = 22, style }) {
   const Flag = FLAGS[code]

@@ -5,13 +5,25 @@ import * as coursesApi from '../api/courses'
 import { useAuth } from '../auth/AuthContext'
 import { useNotify } from '../components/NotificationProvider'
 import { useTranslate } from '../lib/i18n'
-import { COURSE_KEYS, invalidateAll, queryKeys } from './keys'
+import { invalidateAll, queryKeys } from './keys'
 
 /**
- * Everything a course change has to refresh.
+ * Everything a course change has to refresh, which is EVERYTHING.
  *
- * The profile has to come last and has to be awaited: the active course lives
- * on it, and screens route off `user.learningLanguage`. Refetching the lists
+ * This used to invalidate COURSE_KEYS — a hand-kept list of six. That list
+ * missed the exercises, the trivia topics and questions, the daily quests, the
+ * chest status, the league and the activity calendar, so switching from Arabic
+ * to English left the app showing the previous course's trivia and lesson
+ * content until each of those happened to refetch on its own.
+ *
+ * An allow-list is the wrong shape here: every new per-course query has to
+ * remember to join it, and forgetting is silent. Clearing the cache outright
+ * cannot go stale, and a course switch is rare enough that refetching costs
+ * nothing. Screens go through QueryState, so they show their skeletons while
+ * the new course loads rather than the old course's data.
+ *
+ * The profile still has to come last and be awaited: the active course lives on
+ * it, and screens route off `user.learningLanguage`. Refetching the lists
  * without it leaves the app holding the new chapters and the old language.
  */
 function useCourseRefresh() {
@@ -19,7 +31,7 @@ function useCourseRefresh() {
   const { refreshUser } = useAuth()
 
   return async () => {
-    await invalidateAll(queryClient, COURSE_KEYS)
+    queryClient.clear()
     await refreshUser()
   }
 }

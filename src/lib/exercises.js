@@ -60,22 +60,74 @@ export function optionIsNew(option) {
  */
 export const SIMILARITY_THRESHOLD = 0.78
 
-export function similarity(a, b) {
-  const words = (text) =>
-    new Set(
-      String(text ?? '')
-        .toLowerCase()
-        .replace(/[^\p{L}\p{N}\s]/gu, '')
-        .split(/\s+/)
-        .filter(Boolean),
-    )
+/**
+ * Accented letters folded onto their base letter.
+ *
+ * Learners type "Gunaydin" for "Günaydın" — a phone keyboard set to English has
+ * no ü or ı — and counting those as different words scored a perfectly correct
+ * Turkish paragraph at 0.54 against the 0.78 threshold. German, French and
+ * Spanish have the same problem in a smaller way. `ı` and `ß` are listed
+ * explicitly because they are letters in their own right rather than a base
+ * letter carrying an accent.
+ *
+ * Keep in step with the web's ParagraphTranslationExercise.
+ */
+const FOLD = {
+  á: 'a', à: 'a', â: 'a', ä: 'a', ã: 'a', å: 'a', æ: 'ae',
+  ç: 'c',
+  é: 'e', è: 'e', ê: 'e', ë: 'e',
+  ğ: 'g',
+  í: 'i', ì: 'i', î: 'i', ï: 'i', ı: 'i',
+  ñ: 'n',
+  ó: 'o', ò: 'o', ô: 'o', ö: 'o', õ: 'o', œ: 'oe',
+  ş: 's', ß: 'ss',
+  ú: 'u', ù: 'u', û: 'u', ü: 'u',
+  ý: 'y', ÿ: 'y',
+  // Russian keyboards put ё off in the corner and Russians habitually type е
+  // for it, in print as well as online. Treating the two as different letters
+  // would fail an answer over a key almost nobody presses.
+  ё: 'е',
+}
 
-  const setA = words(a)
-  const setB = words(b)
+function normalize(text) {
+  return String(text ?? '')
+    .toLowerCase()
+    // Turkish İ lowercases to i + U+0307 rather than to a plain i.
+    .replace(/̇/g, '')
+    .replace(/[^\p{L}\p{N}\s]/gu, '')
+    .replace(/./gu, (character) => FOLD[character] ?? character)
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+/**
+ * Words where the script writes them separately, character bigrams where it
+ * does not. Japanese and Korean answers are one unbroken run, so splitting on
+ * whitespace gave a single token and turned this into an exact-match test: an
+ * answer the web scored at 0.91 scored 0 here, and the learner failed the Final
+ * Test on mobile for something they would have passed on the web.
+ */
+function tokenize(text) {
+  if (/\s/.test(text)) {
+    return text.split(' ').filter(Boolean)
+  }
+  const characters = Array.from(text)
+  if (characters.length < 2) return characters
+
+  const bigrams = []
+  for (let i = 0; i < characters.length - 1; i += 1) {
+    bigrams.push(characters[i] + characters[i + 1])
+  }
+  return bigrams
+}
+
+export function similarity(a, b) {
+  const setA = new Set(tokenize(normalize(a)))
+  const setB = new Set(tokenize(normalize(b)))
   if (setA.size === 0 || setB.size === 0) return 0
 
   let shared = 0
-  for (const word of setA) if (setB.has(word)) shared += 1
+  for (const token of setA) if (setB.has(token)) shared += 1
 
   return (2 * shared) / (setA.size + setB.size)
 }

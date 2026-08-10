@@ -41,6 +41,10 @@ const SPEECH_LOCALES = {
   de: 'de-DE',
   ja: 'ja-JP',
   ko: 'ko-KR',
+  tr: 'tr-TR',
+  ru: 'ru-RU',
+  ar: 'ar-SA',
+  az: 'az-AZ',
 }
 
 /**
