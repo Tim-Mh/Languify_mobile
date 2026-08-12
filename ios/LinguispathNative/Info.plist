@@ -84,5 +84,12 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<!--
+		The app uses only HTTPS, which is exempt encryption. Declared here so
+		App Store Connect does not ask the export-compliance question on every
+		single build uploaded to TestFlight.
+	-->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 </dict>
 </plist>
