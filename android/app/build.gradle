@@ -108,15 +108,25 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+        release {
+            // The Play Store upload key. Play App Signing re-signs the bundle
+            // with Google's app signing key on their side, so losing this one
+            // is recoverable through the Play Console — but the SHA-1s of BOTH
+            // keys have to be registered as Android OAuth clients in the
+            // Google Cloud project or Google Sign-In stops working on Play
+            // builds.
+            storeFile file('upload.keystore')
+            storePassword LANGUIFY_UPLOAD_STORE_PASSWORD
+            keyAlias 'languify-upload'
+            keyPassword LANGUIFY_UPLOAD_KEY_PASSWORD
+        }
     }
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
         }
         release {
-            // Caution! In production, you need to generate your own keystore file.
-            // see https://reactnative.dev/docs/signed-apk-android.
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }

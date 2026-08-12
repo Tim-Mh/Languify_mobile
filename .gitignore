@@ -87,3 +87,5 @@ yarn-error.log
 # app and can be read straight out of it — and a checkout without them cannot
 # build, because the Firebase Gradle plugin fails without one.
 *.apk
+!upload.keystore
+*.aab
