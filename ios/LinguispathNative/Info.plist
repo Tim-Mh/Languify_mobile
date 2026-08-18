@@ -82,6 +82,15 @@
 		<string>UIInterfaceOrientationPortrait</string>
 		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 	</array>
+	<!--
+		The app is portrait-only, and App Store validation requires any app
+		that does not support all four orientations to opt out of iPad
+		multitasking (Split View / Slide Over) by declaring itself
+		full-screen-only. Removing this key means adding landscape support
+		everywhere instead.
+	-->
+	<key>UIRequiresFullScreen</key>
+	<true/>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
 	<!--
