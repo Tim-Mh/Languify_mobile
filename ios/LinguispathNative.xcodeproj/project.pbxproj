@@ -340,7 +340,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = LinguispathNative/LinguispathNative.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = S9T8JQMLS5;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = LinguispathNative/Info.plist;
@@ -373,7 +373,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = LinguispathNative/LinguispathNative.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = S9T8JQMLS5;
 				INFOPLIST_FILE = LinguispathNative/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
