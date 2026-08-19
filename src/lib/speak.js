@@ -267,6 +267,32 @@ function playFromServer(text, languageCode) {
   currentSound = sound
 }
 
+/**
+ * Ask the backend to render a lesson's words before the learner taps any of
+ * them.
+ *
+ * Only matters for the languages that go through the backend, which are the
+ * ones the device has no voice for. The first request for a word is the slow
+ * one — the server has to synthesise it — and every request after that is a
+ * file read. Firing them while the learner is still reading the first question
+ * means the tap itself never waits.
+ *
+ * Deliberately fire-and-forget, and deliberately not awaited by the caller: a
+ * word that fails to warm costs one slow tap, which is exactly what happened
+ * before this existed.
+ */
+export function prefetchSpeech(texts, languageCode) {
+  // A language the device can say itself never touches the backend, so there is
+  // nothing to warm.
+  if (!SPEECH_LOCALES[languageCode] || deviceHasVoice(languageCode)) return
+
+  for (const text of new Set((texts ?? []).filter(Boolean).map(String))) {
+    // The response is thrown away on purpose. What matters is that the server
+    // has synthesised the file and put it on disk before the learner taps.
+    fetch(speechUrl(text, languageCode)).catch(() => {})
+  }
+}
+
 export function speak(text, languageCode) {
   if (!text) return
 

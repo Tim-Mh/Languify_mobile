@@ -197,7 +197,7 @@ function TriviaRound({ topic, title }) {
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Quit round"
+          accessibilityLabel={t('m_trivia_quit_a11y')}
           onPress={() => setQuitting(true)}
           hitSlop={12}
           style={({ pressed }) => [styles.quit, pressed && styles.pressed]}
@@ -379,20 +379,20 @@ function TriviaRound({ topic, title }) {
         visible={summary !== null}
         title={
           summary?.infiniteHeartsGranted
-            ? 'Perfect round!'
+            ? t('m_trivia_res_perfect')
             : summary?.alreadyCompletedBefore
-              ? 'Round complete'
-              : 'Nice round!'
+              ? t('m_trivia_res_replay')
+              : t('m_trivia_res_nice')
         }
         subtitle={
           summary?.infiniteHeartsGranted
-            ? 'A perfect score earns you unlimited hearts for a while.'
+            ? t('m_trivia_res_perfect_body')
             : summary?.alreadyCompletedBefore
-              ? 'You have played this topic before, so rewards are reduced.'
-              : 'Rewards have been added to your account.'
+              ? t('m_trivia_res_replay_body')
+              : t('m_trivia_res_body')
         }
         rewards={rewards}
-        actionLabel="Done"
+        actionLabel={t('m_done')}
         onClose={leave}
       />
     </View>

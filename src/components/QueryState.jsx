@@ -84,7 +84,14 @@ export default function QueryState({
         icon="error"
         tone="danger"
         title={errorTitle ?? t('m_error_title')}
-        body={query.error?.message ?? errorBody ?? t('m_error_body')}
+        // The translated body wins over `query.error.message`, which used to
+        // come first. That message is written by the server and is always in
+        // English — "Request failed (500)", "Unauthenticated." — so a learner
+        // reading the app in Arabic or Turkish met a wall of English at the one
+        // moment they most needed to understand what to do. A failed GET has no
+        // message worth surfacing anyway; a mutation's error still reaches the
+        // learner through its own toast.
+        body={errorBody ?? t('m_error_body')}
         actionLabel={t('m_try_again')}
         onAction={() => query.refetch?.()}
         busy={query.isFetching}

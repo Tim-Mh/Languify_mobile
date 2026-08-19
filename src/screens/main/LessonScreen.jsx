@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { BackHandler, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { BackHandler, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useFocusEffect, useLocalSearchParams, useRouter } from '@/navigation'
 import Animated, { FadeIn, FadeInRight, SlideInDown, ZoomIn } from 'react-native-reanimated'
@@ -32,6 +32,8 @@ import { useAds } from '@/hooks/useProfile'
 import { useSubscriptionStatus } from '@/hooks/useShop'
 import { HintProvider } from '@/components/HintBubble'
 import { nextAd } from '@/lib/adRotation'
+import { speakableTexts } from '@/lib/exercises'
+import { prefetchSpeech } from '@/lib/speak'
 import { useTranslate } from '@/lib/i18n'
 import { useLayout } from '@/lib/responsive'
 import { releaseSounds, sounds } from '@/lib/sounds'
@@ -125,6 +127,7 @@ function LessonPlayer({ id, chapterId }) {
   const { data: adData } = useAds()
 
   const exercises = useMemo(() => query.data?.exercises ?? [], [query.data])
+  const learningCode = user?.learningLanguage?.code ?? 'en'
   const total = exercises.length
   const current = queue?.[0]
 
@@ -132,6 +135,63 @@ function LessonPlayer({ id, chapterId }) {
   const adFree =
     subscription?.subscription?.status === 'active' ||
     subscription?.subscription?.status === 'trialing'
+
+  /**
+   * Warm the pronunciation of every word in this lesson while the learner is
+   * still reading the first question.
+   *
+   * For a language the device cannot say, the audio is synthesised by our
+   * backend, and the first request for a given word is the slow one. Asking for
+   * all of them up front means the slow part happens during the lesson instead
+   * of under the learner's finger. A no-op for languages the device speaks.
+   */
+  useEffect(() => {
+    if (!exercises.length || !learningCode) return
+
+    prefetchSpeech(exercises.flatMap(speakableTexts), learningCode)
+  }, [exercises, learningCode])
+
+  /**
+   * Choose the interstitial creative and pull its image onto the device while
+   * the learner is still answering questions.
+   *
+   * This used to happen when the lesson was banked, which meant the download
+   * started at the exact moment the ad had to appear. The mobile creatives are
+   * a couple of megabytes each, so on mobile data the learner watched an empty
+   * frame count down. A lesson takes minutes; the image has all of that time to
+   * arrive if it is asked for at the start.
+   *
+   * `Image.prefetch` puts it in the same native cache `<Image>` reads from, so
+   * the interstitial renders from disk rather than the network. A failure is
+   * ignored on purpose: it costs a slow ad, which must never hold up a lesson.
+   */
+  useEffect(() => {
+    if (adFree || !adData || ad) return
+
+    let cancelled = false
+
+    // The mobile pool first: it holds the portrait creatives cut for a phone.
+    // The website's landscape pool is the fallback, so an admin who has not
+    // uploaded a mobile creative yet still gets an ad rather than silence.
+    const pool =
+      adData?.placements?.mobileLessonComplete?.length > 0
+        ? adData.placements.mobileLessonComplete
+        : adData?.placements?.lessonComplete
+
+    nextAd(pool)
+      .then((creative) => {
+        if (cancelled || !creative) return
+
+        setAd(creative)
+
+        if (creative.url) Image.prefetch(creative.url).catch(() => {})
+      })
+      .catch(() => {})
+
+    return () => {
+      cancelled = true
+    }
+  }, [adFree, adData, ad])
 
   useEffect(() => {
     if (exercises.length > 0 && queue === null) setQueue(exercises)
@@ -179,20 +239,10 @@ function LessonPlayer({ id, chapterId }) {
     finish.mutate(
       { mistakes },
       {
-        onSuccess: async (result) => {
-          if (!adFree) {
-            // The mobile pool first: it holds the portrait creatives cut for a
-            // phone. The website's landscape pool is the fallback, so an admin
-            // who has not uploaded a mobile creative yet still gets an ad
-            // rather than silence.
-            const pool =
-              adData?.placements?.mobileLessonComplete?.length > 0
-                ? adData.placements.mobileLessonComplete
-                : adData?.placements?.lessonComplete
-            const creative = await nextAd(pool)
-            if (creative) setAd(creative)
-          }
-
+        onSuccess: (result) => {
+          // The creative was chosen and its image downloaded while the learner
+          // was still answering — see the effect above — so there is nothing to
+          // wait for here.
           setSummary(result)
         },
         onError: (error) => notify.error(error.message),
@@ -499,7 +549,7 @@ function LessonPlayer({ id, chapterId }) {
                     // so the second attempt is a lesson rather than a re-test.
                     forceHints={wrongIds.has(current.id)}
                     nativeCode={user?.nativeLanguage?.code ?? 'en'}
-                    learningCode={user?.learningLanguage?.code ?? 'en'}
+                    learningCode={learningCode}
                   />
                 </Animated.View>
               </ScrollView>

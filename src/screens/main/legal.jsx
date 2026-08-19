@@ -5,11 +5,12 @@ import { useQuery } from '@tanstack/react-query'
 import { WebView } from 'react-native-webview'
 import ChevronLeft from 'lucide-react-native/icons/chevron-left'
 import { Pressable } from 'react-native'
-import { useLocalSearchParams } from '@/navigation'
+import { useLocalSearchParams, useRouter } from '@/navigation'
 
 import QueryState from '@/components/QueryState'
 import { legalPage } from '@/api/pages'
 import { openInAppBrowser } from '@/lib/browser'
+import { WEB_URL_OVERRIDE } from '@/lib/env'
 import { useLanguageCode, useTranslate } from '@/lib/i18n'
 import { useLayout } from '@/lib/responsive'
 import { useGoBack } from '@/lib/useGoBack'
@@ -90,6 +91,36 @@ export default function LegalScreen() {
 const RTL_LOCALES = new Set(['ar'])
 
 /**
+ * What a relative link in the admin's HTML resolves against.
+ *
+ * The document is handed to the WebView as a string, so it has no address of
+ * its own and a relative `href="/contact"` resolves to nothing at all. That is
+ * why the Contact link at the bottom of the Terms did nothing when tapped. A
+ * `<base>` gives every relative link a real address, which also makes them
+ * recognisable below.
+ */
+const WEB_ORIGIN = WEB_URL_OVERRIDE ?? 'https://languify.us'
+
+/**
+ * Paths that exist as screens in this app, so a link to one stays inside the
+ * app instead of throwing the learner out to the website. Keyed by the web
+ * path, valued by the route this app knows it as.
+ */
+const IN_APP_PATHS = {
+  '/contact': '/contact',
+}
+
+/** The path part of a link into our own website, or null for anywhere else. */
+function webPathOf(url) {
+  if (!url.startsWith(WEB_ORIGIN)) return null
+
+  const path = url.slice(WEB_ORIGIN.length).split('?')[0].split('#')[0]
+
+  // `/contact` and `/contact/` are the same page.
+  return path.length > 1 && path.endsWith('/') ? path.slice(0, -1) : path
+}
+
+/**
  * The admin's HTML, wrapped in the app's typography.
  *
  * The stylesheet is injected rather than applied to the WebView, because the
@@ -102,11 +133,14 @@ const RTL_LOCALES = new Set(['ar'])
  * list bullets and table cells stranded on the wrong edge.
  */
 function PageBody({ html, locale }) {
+  const router = useRouter()
+
   const document = useMemo(
     () => `<!DOCTYPE html>
 <html lang="${locale}" dir="${RTL_LOCALES.has(locale) ? 'rtl' : 'ltr'}">
 <head>
 <meta charset="utf-8">
+<base href="${WEB_ORIGIN}/">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <style>
   :root { color-scheme: light; }
@@ -149,9 +183,19 @@ function PageBody({ html, locale }) {
       backgroundColor={colors.surface}
       // A link in the terms goes to the in-app browser rather than replacing
       // the page the learner is reading, which would leave them with no way
-      // back to it.
+      // back to it. A link to a screen this app already has goes there instead.
       onShouldStartLoadWithRequest={(request) => {
         if (request.url === 'about:blank' || request.url.startsWith('data:')) return true
+
+        // The Contact link at the foot of the Terms points at the website, but
+        // this app has that screen already. Sending the learner to the app's own
+        // Contact form keeps them signed in and inside the app.
+        const inApp = IN_APP_PATHS[webPathOf(request.url)]
+
+        if (inApp) {
+          router.push(inApp)
+          return false
+        }
 
         openInAppBrowser(request.url)
         return false

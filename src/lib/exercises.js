@@ -151,3 +151,29 @@ export function sameOrder(attempt, correct) {
     attempt.length === correct.length && attempt.every((word, i) => word === correct[i])
   )
 }
+
+/**
+ * Every string in an exercise that the learner can tap to hear.
+ *
+ * Used to warm the pronunciation cache when a lesson opens, so the first tap is
+ * as quick as the tenth. It lists fields explicitly rather than walking the
+ * whole payload, because the payload also carries native-language glosses
+ * (`sentence_translation`, an option's `en`) and rendering those in the voice of
+ * the language being learned would be both wrong and wasted work.
+ *
+ * Kept beside `optionLabel` so the two stay in step: if an exercise type starts
+ * speaking a new field, it gets added here in the same edit.
+ */
+export function speakableTexts(exercise) {
+  const data = exercise?.data ?? {}
+
+  const fromOptions = (list) => (Array.isArray(list) ? list.map(optionLabel) : [])
+
+  return [
+    data.word,
+    data.audio_text,
+    ...fromOptions(data.options),
+    ...fromOptions(data.word_bank),
+    ...fromOptions(data.words),
+  ].filter((text) => typeof text === 'string' && text.trim() !== '')
+}
