@@ -83,12 +83,19 @@ async function signInWithGoogleNative() {
       await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true })
     }
 
-    // Clears the SDK's own cached session so the account chooser is always
-    // shown. Without it, Google silently reuses whichever account signed in
-    // last and there is no way to pick a different one — on a shared phone, or
-    // for anyone with a personal and a work account, that is a dead end with no
-    // visible cause. This only signs out of the Google SDK; it does not touch
-    // our session.
+    // Clears the SDK's cached session AND the app's standing authorization
+    // with Google, so the account screen is always shown. signOut alone is not
+    // enough: Google stores "this account authorized this app" on the account
+    // itself, and the native sheets on both platforms silently auto-continue
+    // an authorized account — including on a device it never signed in from,
+    // which is how tapping Google on a second phone logged straight into the
+    // first phone's account with no way to pick another. Revoking only severs
+    // the Google-side grant; it does not touch our own session.
+    try {
+      await GoogleSignin.revokeAccess()
+    } catch {
+      // No signed-in Google session on this device to revoke from.
+    }
     try {
       await GoogleSignin.signOut()
     } catch {
@@ -105,7 +112,24 @@ async function signInWithGoogleNative() {
       throw new ApiError('Google did not return an identity token.', { status: 0 })
     }
 
-    return exchange('google', idToken)
+    const token = await exchange('google', idToken)
+
+    // Sever the grant while this device still holds the Google session — this
+    // is the moment that guarantees every future sign-in, on every device,
+    // asks which account to use. The identity token is already verified and
+    // exchanged, so nothing depends on the Google session after this point.
+    try {
+      await GoogleSignin.revokeAccess()
+    } catch {
+      // Best effort: the pre-sign-in revoke above covers a miss here.
+    }
+    try {
+      await GoogleSignin.signOut()
+    } catch {
+      // Ignored for the same reason.
+    }
+
+    return token
   } catch (error) {
     if (
       error?.code === statusCodes?.SIGN_IN_CANCELLED ||
