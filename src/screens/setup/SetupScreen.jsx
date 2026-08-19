@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter } from '@/navigation'
@@ -62,9 +62,8 @@ export default function Setup() {
   const notify = useNotify()
   const t = useTranslate()
   const { user } = useAuth()
-  const { width, column, size } = useLayout()
+  const { column, size } = useLayout()
 
-  const scrollRef = useRef(null)
   // Resume on the earliest step still missing from the profile, so quitting
   // halfway and coming back does not restart the wizard.
   const [index, setIndex] = useState(() => firstIncompleteStepIndex(user) ?? 0)
@@ -84,14 +83,6 @@ export default function Setup() {
     [languages, nativeId],
   )
 
-  const slideTo = useCallback(
-    (next) => {
-      setIndex(next)
-      scrollRef.current?.scrollTo({ x: next * width, animated: true })
-    },
-    [width],
-  )
-
   // At step 1 there is only somewhere to go back to if this screen was pushed
   // rather than replaced onto the stack, which is not the case straight after
   // signup.
@@ -102,8 +93,8 @@ export default function Setup() {
       if (router.canGoBack()) router.back()
       return
     }
-    slideTo(index - 1)
-  }, [index, router, slideTo])
+    setIndex(index - 1)
+  }, [index, router])
 
   // Each step saves as it completes, so quitting halfway is resumable. The
   // language pair can only be saved once both halves are known, which is why
@@ -124,14 +115,14 @@ export default function Setup() {
     if (busy) return
 
     if (index === 0) {
-      slideTo(1)
+      setIndex(1)
     } else if (index === 1) {
       saveCourse.mutate(
         { nativeLanguageId: nativeId, learningLanguageId: learningId },
-        { onSuccess: () => slideTo(2) },
+        { onSuccess: () => setIndex(2) },
       )
     } else if (index === 2) {
-      saveLevel.mutate(level, { onSuccess: () => slideTo(3) })
+      saveLevel.mutate(level, { onSuccess: () => setIndex(3) })
     } else {
       saveGoal.mutate(days, {
         onSuccess: () => {
@@ -149,7 +140,7 @@ export default function Setup() {
     Boolean(days),
   ][index]
 
-  const pageStyle = { width, paddingHorizontal: spacing.lg }
+  const pageStyle = { paddingHorizontal: spacing.lg }
   const columnStyle = column
 
   return (
@@ -167,23 +158,24 @@ export default function Setup() {
         </View>
       ) : null}
 
-      <ScrollView
-        ref={scrollRef}
-        horizontal
-        pagingEnabled
-        // Driven by the buttons, not the finger. Swiping forward would skip the
-        // save that each step performs, so the pair of pages either side of a
-        // request must not be reachable by gesture.
-        scrollEnabled={false}
-        showsHorizontalScrollIndicator={false}
-        // Jump straight to the resumed step without animating past the earlier
-        // ones. Needed in addition to contentOffset because Android ignores it.
-        onLayout={() => scrollRef.current?.scrollTo({ x: index * width, animated: false })}
-        contentOffset={{ x: index * width, y: 0 }}
-        style={styles.pager}
-      >
-        {/* 1 — what they already speak */}
-        <ScrollView contentContainerStyle={[pageStyle, styles.page]} showsVerticalScrollIndicator={false}>
+      {/*
+        One page at a time, chosen by `index` alone. This was a horizontal
+        ScrollView pager driven by scrollTo(index * width), but on iOS under
+        the new architecture the programmatic scroll could land a page past
+        its target, leaving the visible page out of step with `index` — the
+        header, the Continue button, and the save requests all follow `index`,
+        so the wizard soft-locked. Rendering from state cannot desync, and
+        nothing of value is lost: swiping between steps was already disabled
+        because it would skip the per-step saves.
+      */}
+
+      {/* 1 — what they already speak */}
+      {index === 0 && (
+        <ScrollView
+          style={styles.pager}
+          contentContainerStyle={[pageStyle, styles.page]}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={columnStyle}>
             <Text style={[styles.title, { fontSize: size(26) }]}>{t('m_setup_speak_q')}</Text>
             <Text style={styles.subtitle}>
@@ -216,9 +208,15 @@ export default function Setup() {
             </QueryState>
           </View>
         </ScrollView>
+      )}
 
-        {/* 2 — what they want to learn */}
-        <ScrollView contentContainerStyle={[pageStyle, styles.page]} showsVerticalScrollIndicator={false}>
+      {/* 2 — what they want to learn */}
+      {index === 1 && (
+        <ScrollView
+          style={styles.pager}
+          contentContainerStyle={[pageStyle, styles.page]}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={columnStyle}>
             <Text style={[styles.title, { fontSize: size(26) }]}>{t('m_setup_learn_q')}</Text>
             <Text style={styles.subtitle}>{t('m_setup_learn_sub')}</Text>
@@ -235,9 +233,15 @@ export default function Setup() {
             ))}
           </View>
         </ScrollView>
+      )}
 
-        {/* 3 — proficiency */}
-        <ScrollView contentContainerStyle={[pageStyle, styles.page]} showsVerticalScrollIndicator={false}>
+      {/* 3 — proficiency */}
+      {index === 2 && (
+        <ScrollView
+          style={styles.pager}
+          contentContainerStyle={[pageStyle, styles.page]}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={columnStyle}>
             <Text style={[styles.title, { fontSize: size(26) }]}>{t('m_setup_level_q')}</Text>
             <Text style={styles.subtitle}>
@@ -256,9 +260,15 @@ export default function Setup() {
             ))}
           </View>
         </ScrollView>
+      )}
 
-        {/* 4 — streak goal */}
-        <ScrollView contentContainerStyle={[pageStyle, styles.page]} showsVerticalScrollIndicator={false}>
+      {/* 4 — streak goal */}
+      {index === 3 && (
+        <ScrollView
+          style={styles.pager}
+          contentContainerStyle={[pageStyle, styles.page]}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={columnStyle}>
             <Text style={[styles.title, { fontSize: size(26) }]}>{t('m_setup_goal_q')}</Text>
             <Text style={styles.subtitle}>
@@ -277,7 +287,7 @@ export default function Setup() {
             ))}
           </View>
         </ScrollView>
-      </ScrollView>
+      )}
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.lg }]}>
         <View style={columnStyle}>
