@@ -126,7 +126,18 @@ android {
             signingConfig signingConfigs.debug
         }
         release {
-            signingConfig signingConfigs.release
+            // Two keys on purpose, matching the two Android OAuth clients in
+            // the Google Cloud console. Direct-install APKs are signed with
+            // the debug key so Google sign-in works on sideloaded builds; a
+            // Play Store upload must carry the upload key instead, so build
+            // bundles with:
+            //
+            //     ./gradlew bundleRelease -PplayUpload
+            //
+            // Forgetting the flag on a bundle is caught by the Play Console
+            // (it rejects the wrong signature); forgetting it on an APK is
+            // exactly what we want.
+            signingConfig project.hasProperty('playUpload') ? signingConfigs.release : signingConfigs.debug
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
