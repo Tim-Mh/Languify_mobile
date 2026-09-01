@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Animated, { FadeInDown } from 'react-native-reanimated'
 import Gem from 'lucide-react-native/icons/gem'
@@ -24,6 +24,18 @@ import { colors, fonts, radii, shadows, spacing } from '@/theme'
 function money(cents) {
   return `$${(cents / 100).toFixed(2)}`
 }
+
+/**
+ * Whether real-money purchases may be offered at all.
+ *
+ * App Store guideline 3.1.1: digital content sold inside an iOS app must go
+ * through Apple's In-App Purchase, and ours goes through Stripe. Until (and
+ * unless) StoreKit is implemented, iOS shows no plans and no gem packs — only
+ * the gem-priced heart refills, because gems on iOS are earned, not bought.
+ * This is the Netflix/Spotify arrangement Apple explicitly allows, provided
+ * the app also never links out to an external way to pay.
+ */
+const CAN_PURCHASE = Platform.OS !== 'ios'
 
 export default function Shop() {
   const insets = useSafeAreaInsets()
@@ -112,10 +124,12 @@ export default function Shop() {
             skeleton, and throws while data is still undefined. */}
         {(catalog) => (
           <>
-            <Text style={styles.sectionLabel}>{t('m_shop_plans')}</Text>
-            <PlanManager plans={catalog.subscriptionPlans ?? []} />
+            {CAN_PURCHASE && (
+              <>
+                <Text style={styles.sectionLabel}>{t('m_shop_plans')}</Text>
+                <PlanManager plans={catalog.subscriptionPlans ?? []} />
 
-            <Text style={styles.sectionLabel}>{t('m_shop_gems')}</Text>
+                <Text style={styles.sectionLabel}>{t('m_shop_gems')}</Text>
             {/* One compact row per pack with the price as a tappable pill,
                 matching the refill rows on the Hearts screen. A full-width
                 stacked card per pack turned a five-item list into five screens
@@ -168,6 +182,8 @@ export default function Shop() {
                 </Animated.View>
               )
             })}
+              </>
+            )}
 
             <Text style={styles.sectionLabel}>{t('m_shop_refills')}</Text>
             {/* Identical rows to the Hearts screen's, down to the gem pill and

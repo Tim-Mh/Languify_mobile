@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter } from '@/navigation'
 import Animated, { FadeInDown } from 'react-native-reanimated'
@@ -305,8 +305,10 @@ export default function Family() {
                 icon="empty"
                 title={t('m_family_none')}
                 body={t('m_family_none_b')}
-                actionLabel={t('m_family_see_plans')}
-                onAction={() => router.replace('/shop')}
+                // Plans cannot be bought on iOS (App Store guideline 3.1.1 —
+                // see the shop), so pointing there would be a dead end.
+                actionLabel={Platform.OS === 'ios' ? undefined : t('m_family_see_plans')}
+                onAction={Platform.OS === 'ios' ? undefined : () => router.replace('/shop')}
                 inline
               />
             )

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
+import { Image, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter } from '@/navigation'
 import { LinearGradient } from 'react-native-linear-gradient'
@@ -312,13 +312,17 @@ export default function Profile() {
       <Text style={styles.sectionLabel}>{t('m_profile_account')}</Text>
       <View style={styles.card}>
         {/* Naming the plan and doing nothing is a dead end: the only reason to
-            look is to change it, and that lives in the shop. */}
-        <LinkRow
-          icon={<Crown size={18} color={colors.secondary[500]} strokeWidth={2.2} />}
-          label={t('m_profile_subscription')}
-          hint={user?.hasActiveAppAccess ? t('m_profile_premium') : t('m_profile_free_plan')}
-          onPress={() => router.push('/shop')}
-        />
+            look is to change it, and that lives in the shop. On iOS the shop
+            sells no plans (App Store guideline 3.1.1 — see the shop), so the
+            row leads nowhere and is hidden instead. */}
+        {Platform.OS !== 'ios' && (
+          <LinkRow
+            icon={<Crown size={18} color={colors.secondary[500]} strokeWidth={2.2} />}
+            label={t('m_profile_subscription')}
+            hint={user?.hasActiveAppAccess ? t('m_profile_premium') : t('m_profile_free_plan')}
+            onPress={() => router.push('/shop')}
+          />
+        )}
         {/* Here as well as on the plan card, because someone who has been
             invited is on no plan at all and would never think to look in the
             shop for it. */}
