@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Animated, { FadeInDown } from 'react-native-reanimated'
 import Gem from 'lucide-react-native/icons/gem'
@@ -13,7 +13,14 @@ import RewardModal from '@/components/RewardModal'
 import { ShopSkeleton } from '@/components/Skeleton'
 import { TAB_BAR_OVERHANG } from '@/components/TabBar'
 import { useGameState } from '@/hooks/useGame'
-import { useBuyGemPack, useRefillHearts, useShopCatalog } from '@/hooks/useShop'
+import {
+  useApplePrices,
+  useBuyGemPack,
+  useRefillHearts,
+  useRestoreApplePurchases,
+  useShopCatalog,
+} from '@/hooks/useShop'
+import { APPLE_IAP, appleGemsProductId } from '@/lib/iap'
 import { contentPhrase, gemPackTitle, heartTierTitle } from '@/lib/contentNames'
 import { useTranslate } from '@/lib/i18n'
 import { useRefresh } from '@/lib/useRefresh'
@@ -24,18 +31,6 @@ import { colors, fonts, radii, shadows, spacing } from '@/theme'
 function money(cents) {
   return `$${(cents / 100).toFixed(2)}`
 }
-
-/**
- * Whether real-money purchases may be offered at all.
- *
- * App Store guideline 3.1.1: digital content sold inside an iOS app must go
- * through Apple's In-App Purchase, and ours goes through Stripe. Until (and
- * unless) StoreKit is implemented, iOS shows no plans and no gem packs — only
- * the gem-priced heart refills, because gems on iOS are earned, not bought.
- * This is the Netflix/Spotify arrangement Apple explicitly allows, provided
- * the app also never links out to an external way to pay.
- */
-const CAN_PURCHASE = Platform.OS !== 'ios'
 
 export default function Shop() {
   const insets = useSafeAreaInsets()
@@ -56,6 +51,13 @@ export default function Shop() {
   // could only ever be written at the call site.
   const buyGems = useBuyGemPack()
   const buyHearts = useRefillHearts()
+  const restore = useRestoreApplePurchases()
+
+  // On iOS the price shown (and charged) is Apple's, localized; a product
+  // App Store Connect does not know has no price and is not offered. This
+  // hook also recovers purchases whose backend credit was interrupted.
+  const applePricesQuery = useApplePrices(query.data)
+  const applePrices = applePricesQuery.data ?? {}
 
   const celebrateGems = (result) => {
     if (result?.cancelled) return
@@ -124,19 +126,26 @@ export default function Shop() {
             skeleton, and throws while data is still undefined. */}
         {(catalog) => (
           <>
-            {CAN_PURCHASE && (
-              <>
-                <Text style={styles.sectionLabel}>{t('m_shop_plans')}</Text>
-                <PlanManager plans={catalog.subscriptionPlans ?? []} />
+            <Text style={styles.sectionLabel}>{t('m_shop_plans')}</Text>
+            <PlanManager plans={catalog.subscriptionPlans ?? []} applePrices={applePrices} />
 
-                <Text style={styles.sectionLabel}>{t('m_shop_gems')}</Text>
+            <Text style={styles.sectionLabel}>{t('m_shop_gems')}</Text>
             {/* One compact row per pack with the price as a tappable pill,
                 matching the refill rows on the Hearts screen. A full-width
                 stacked card per pack turned a five-item list into five screens
                 of scrolling, and the two screens sold the same things in two
-                different shapes. */}
-            {(catalog.gemPacks ?? []).map((pack, index) => {
+                different shapes.
+
+                On iOS a pack is only offered when Apple prices it — Apple
+                bills there (guideline 3.1.1), and a product App Store Connect
+                does not know cannot be bought. */}
+            {(catalog.gemPacks ?? [])
+              .filter((pack) => !APPLE_IAP || applePrices[appleGemsProductId(pack.key)])
+              .map((pack, index) => {
               const busy = buyGems.isPending && buyGems.variables?.key === pack.key
+              const price = APPLE_IAP
+                ? applePrices[appleGemsProductId(pack.key)]
+                : money(pack.amountCents)
 
               return (
                 <Animated.View
@@ -161,7 +170,7 @@ export default function Shop() {
 
                   <Pressable
                     accessibilityRole="button"
-                    accessibilityLabel={`${pack.title} for ${money(pack.amountCents)}`}
+                    accessibilityLabel={`${pack.title} for ${price}`}
                     disabled={buyGems.isPending}
                     onPress={() => {
                       sounds.click()
@@ -176,14 +185,12 @@ export default function Shop() {
                     {busy ? (
                       <ActivityIndicator color={colors.white} size="small" />
                     ) : (
-                      <Text style={styles.buyPrice}>{money(pack.amountCents)}</Text>
+                      <Text style={styles.buyPrice}>{price}</Text>
                     )}
                   </Pressable>
                 </Animated.View>
               )
             })}
-              </>
-            )}
 
             <Text style={styles.sectionLabel}>{t('m_shop_refills')}</Text>
             {/* Identical rows to the Hearts screen's, down to the gem pill and
@@ -245,6 +252,24 @@ export default function Shop() {
                 </Animated.View>
               )
             })}
+
+            {/* Apple requires a Restore Purchases control wherever In-App
+                Purchase is offered. Reinstalls and new devices get their
+                subscription back through here. */}
+            {APPLE_IAP && (
+              <Pressable
+                accessibilityRole="button"
+                disabled={restore.isPending}
+                onPress={() => restore.mutate()}
+                style={({ pressed }) => [styles.restore, pressed && styles.pressed]}
+              >
+                {restore.isPending ? (
+                  <ActivityIndicator color={colors.secondary[500]} size="small" />
+                ) : (
+                  <Text style={styles.restoreText}>{t('m_shop_restore')}</Text>
+                )}
+              </Pressable>
+            )}
           </>
         )}
       </QueryState>
@@ -396,5 +421,15 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.75,
+  },
+  restore: {
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+    marginTop: spacing.md,
+  },
+  restoreText: {
+    fontFamily: fonts.bodySemi,
+    fontSize: 14,
+    color: colors.secondary[500],
   },
 })

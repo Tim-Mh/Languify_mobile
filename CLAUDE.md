@@ -158,3 +158,36 @@ npx react-native bundle --platform android --dev false \
 It does not catch a wrong native module version or a missing permission, so a
 real build (`npm run android`) is what confirms those. iOS cannot be built from
 Windows; `pod install` and a build on macOS are still outstanding for this port.
+
+## Payments
+
+Two billing providers, decided by platform:
+
+- **Android (and the web app): Stripe.** Checkout opens in the in-app sheet,
+  the session is verified through `/subscription/verify` / `/shop/gems/verify`.
+- **iOS: Apple In-App Purchase**, via `react-native-iap` (StoreKit 2) —
+  App Review rejected Stripe checkout under guideline 3.1.1, so on iOS Apple
+  bills. `src/lib/iap.js` owns the connection; the purchase hooks in
+  `src/hooks/useShop.js` branch on `APPLE_IAP`.
+
+The product-id scheme is a three-way contract between the app, the backend,
+and App Store Connect: `us.languify.app.sub.{plan_key}` and
+`us.languify.app.gems.{pack_key}`, where the suffix is the catalog row's key
+(`monthly`/`yearly`/`family`, `basic`/`adventure`/`vault`).
+
+Rules the flow depends on:
+
+- **A signed transaction goes to `POST /shop/apple/verify` BEFORE
+  `finishTransaction`.** The backend credit is the source of truth; finishing
+  first would lose the purchase if the network died in between. Unfinished
+  transactions are redelivered by StoreKit on the next launch and recovered by
+  the orphan handler `useApplePrices` registers.
+- **On iOS a product without an Apple price is not offered.** The shop and
+  PlanManager filter against the `loadApplePrices` map, so a product missing
+  from App Store Connect disappears rather than erroring at purchase time.
+- **Prices shown on iOS are Apple's localized `displayPrice`**, never
+  `amountCents` — the two catalogs can drift by design (Apple price tiers).
+- An Apple-billed subscription is managed in the App Store
+  (`showManageSubscriptionsIOS`); the Stripe controls stay hidden because
+  `manageable` is false for it. The backend's `provider` field says which.
+- Apple requires the **Restore Purchases** control (shop, iOS only).

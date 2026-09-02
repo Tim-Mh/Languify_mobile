@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { APPLE_IAP, appleSubProductId } from '../lib/iap'
 import { useRouter } from '@/navigation'
 import Calendar from 'lucide-react-native/icons/calendar'
 import Check from 'lucide-react-native/icons/check'
@@ -46,7 +47,7 @@ function formatDate(value) {
  * list of plans to buy or switch to. Mirrors the web Store's plan half so the
  * two products behave the same, including cancelling being one-way.
  */
-export default function PlanManager({ plans = [] }) {
+export default function PlanManager({ plans = [], applePrices = {} }) {
   const notify = useNotify()
   const router = useRouter()
   const t = useTranslate()
@@ -211,6 +212,26 @@ export default function PlanManager({ plans = [] }) {
             </Pressable>
           ) : null}
 
+          {/* An Apple-billed plan is managed by Apple: renewals, cancellation
+              and refunds all live in the App Store's subscription sheet, and
+              our Stripe controls (manageable=false hides them) could not
+              touch it anyway. */}
+          {subscription?.provider === 'apple' && !isFamilyMember && !planCanceled ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('m_plan_manage_appstore')}
+              onPress={() => {
+                const { showManageSubscriptionsIOS } = require('react-native-iap')
+                showManageSubscriptionsIOS().catch(() => {})
+              }}
+              style={({ pressed }) => [styles.manageFamily, pressed && styles.renewRowPressed]}
+            >
+              <Crown size={17} color={colors.primary[600]} strokeWidth={2.3} />
+              <Text style={styles.manageFamilyLabel}>{t('m_plan_manage_appstore')}</Text>
+              <ChevronRight size={17} color={colors.primary[400]} strokeWidth={2.2} />
+            </Pressable>
+          ) : null}
+
           {canManagePlan ? (
             <Pressable
               onPress={() => !busy && autoRenew.mutate(!autoRenewOn)}
@@ -277,11 +298,19 @@ export default function PlanManager({ plans = [] }) {
         </View>
       ) : null}
 
-      {/* Family members ride on someone else's plan and have nothing to buy. */}
+      {/* Family members ride on someone else's plan and have nothing to buy.
+          On iOS a plan is only offered when Apple prices it — Apple bills
+          there (guideline 3.1.1), and a product App Store Connect does not
+          know cannot be bought. */}
       {!isFamilyMember
-        ? plans.map((plan) => {
+        ? plans
+            .filter((plan) => !APPLE_IAP || applePrices[appleSubProductId(plan.key)])
+            .map((plan) => {
             const Icon = PLAN_ICONS[plan.key] ?? Crown
             const isActive = activePlanKey === plan.key
+            const price = APPLE_IAP
+              ? applePrices[appleSubProductId(plan.key)]
+              : money(plan.amountCents)
 
             return (
               <View key={plan.key} style={[styles.card, isActive && styles.cardActive]}>
@@ -302,7 +331,7 @@ export default function PlanManager({ plans = [] }) {
 
                 <Text style={styles.cardTitle}>{planTitle(t, plan)}</Text>
                 <Text style={styles.price}>
-                  {money(plan.amountCents)}
+                  {price}
                   <Text style={styles.interval}>/{planInterval(t, plan.interval)}</Text>
                 </Text>
 

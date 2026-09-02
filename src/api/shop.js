@@ -37,3 +37,13 @@ export function verifyGemsCheckout(sessionId) {
 export function refillHearts(tierKey) {
   return api.post('/shop/hearts/refill', { tierKey })
 }
+
+/**
+ * Hand an Apple In-App Purchase to the backend. `signedTransaction` is the
+ * JWS StoreKit returned; the server verifies the signature against Apple's
+ * root certificates and credits idempotently — gems for a consumable, an
+ * active plan for a subscription. Safe to repeat with the same transaction.
+ */
+export function verifyApplePurchase(signedTransaction) {
+  return api.post('/shop/apple/verify', { signedTransaction })
+}

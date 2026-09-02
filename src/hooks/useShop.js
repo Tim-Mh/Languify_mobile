@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import * as shopApi from '../api/shop'
@@ -6,6 +7,16 @@ import { useAuth } from '../auth/AuthContext'
 import { useCheckout } from '../components/CheckoutProvider'
 import { useNotify } from '../components/NotificationProvider'
 import { WEB_URL_OVERRIDE } from '../lib/env'
+import {
+  APPLE_IAP,
+  appleAvailablePurchases,
+  appleGemsProductId,
+  appleSubProductId,
+  buyWithApple,
+  finalizeApplePurchase,
+  loadApplePrices,
+  onOrphanPurchase,
+} from '../lib/iap'
 import { useTranslate } from '../lib/i18n'
 import { invalidateAll, queryKeys } from './keys'
 
@@ -77,6 +88,21 @@ export function useBuyGemPack() {
 
   return useMutation({
     mutationFn: async (pack) => {
+      // On iOS Apple bills (guideline 3.1.1 — Stripe checkout was rejected
+      // by App Review). The transaction is finished only after the backend
+      // has verified and credited it; unfinished ones are redelivered by
+      // StoreKit on the next launch, so a network failure between the two
+      // can delay gems but never lose them.
+      if (APPLE_IAP) {
+        const result = await buyWithApple({ sku: appleGemsProductId(pack.key), type: 'in-app' })
+        if (result.cancelled) return { cancelled: true }
+
+        const credited = await shopApi.verifyApplePurchase(result.purchase.purchaseToken)
+        await finalizeApplePurchase(result.purchase)
+
+        return { ...credited, pack }
+      }
+
       const { checkoutUrl } = await shopApi.checkoutGems({
         packKey: pack.key,
         successUrl: SUCCESS_URL,
@@ -123,6 +149,17 @@ export function useStartSubscriptionCheckout() {
 
   return useMutation({
     mutationFn: async (planKey) => {
+      // Apple bills on iOS; see useBuyGemPack for the ordering rationale.
+      if (APPLE_IAP) {
+        const result = await buyWithApple({ sku: appleSubProductId(planKey), type: 'subs' })
+        if (result.cancelled) return { cancelled: true }
+
+        const credited = await shopApi.verifyApplePurchase(result.purchase.purchaseToken)
+        await finalizeApplePurchase(result.purchase)
+
+        return credited
+      }
+
       const { checkoutUrl } = await subscriptionApi.checkoutSubscription({
         planKey,
         successUrl: SUCCESS_URL,
@@ -139,9 +176,86 @@ export function useStartSubscriptionCheckout() {
     },
     onSuccess: async (result) => {
       if (result?.cancelled) return
-      if (result?.status === 'activated' || result?.status === 'already_active') {
+      // 'activated'/'already_active' are Stripe's vocabulary, 'completed' is
+      // the Apple verify endpoint's.
+      if (['activated', 'already_active', 'completed'].includes(result?.status)) {
         await refreshEntitlements()
       }
+    },
+    onError: (error) => notify.error(error.message),
+  })
+}
+
+/**
+ * Apple's localized prices for everything in the catalog, keyed by product
+ * id. Also the shop's IAP bootstrap: while mounted, any purchase StoreKit
+ * redelivers (one whose backend credit was interrupted) is verified and
+ * finished in the background.
+ *
+ * Resolves to an empty map off iOS and for products App Store Connect does
+ * not know, so the shop can simply not offer what has no price.
+ */
+export function useApplePrices(catalog) {
+  const queryClient = useQueryClient()
+  const { refreshUser } = useAuth()
+
+  useEffect(() => {
+    if (!APPLE_IAP) return undefined
+
+    onOrphanPurchase(async (purchase) => {
+      try {
+        await shopApi.verifyApplePurchase(purchase.purchaseToken)
+        await finalizeApplePurchase(purchase)
+        await invalidateAll(queryClient, [queryKeys.subscriptionStatus, queryKeys.gameState])
+        await refreshUser()
+      } catch {
+        // Still unfinished; StoreKit will redeliver again next launch.
+      }
+    })
+
+    return () => onOrphanPurchase(null)
+  }, [queryClient, refreshUser])
+
+  const subKeys = (catalog?.subscriptionPlans ?? []).map((plan) => plan.key)
+  const gemKeys = (catalog?.gemPacks ?? []).map((pack) => pack.key)
+
+  return useQuery({
+    queryKey: [...queryKeys.shopCatalog, 'apple-prices', ...subKeys, ...gemKeys],
+    queryFn: () => loadApplePrices({ subKeys, gemKeys }),
+    enabled: APPLE_IAP && subKeys.length + gemKeys.length > 0,
+    staleTime: 10 * 60_000,
+  })
+}
+
+/**
+ * Re-checks every purchase StoreKit still holds against the backend. Apple
+ * requires a Restore Purchases control wherever IAP is offered; this is what
+ * it does — reinstalls and new devices recover subscriptions this way.
+ */
+export function useRestoreApplePurchases() {
+  const refreshEntitlements = useEntitlementRefresh()
+  const notify = useNotify()
+  const t = useTranslate()
+
+  return useMutation({
+    mutationFn: async () => {
+      const purchases = await appleAvailablePurchases()
+
+      let restored = 0
+
+      for (const purchase of purchases) {
+        if (!purchase?.purchaseToken) continue
+
+        const result = await shopApi.verifyApplePurchase(purchase.purchaseToken)
+
+        if (['completed', 'already_completed'].includes(result?.status)) restored += 1
+      }
+
+      return { restored }
+    },
+    onSuccess: async ({ restored }) => {
+      await refreshEntitlements()
+      notify.info(restored > 0 ? t('m_shop_restored') : t('m_shop_nothing_restore'))
     },
     onError: (error) => notify.error(error.message),
   })
