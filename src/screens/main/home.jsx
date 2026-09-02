@@ -172,16 +172,19 @@ export default function Home() {
     >
       {/* The slab bleeds to all three edges, so the status band is part of the
           chrome rather than another card floating on the background. */}
-      <LinearGradient
-        colors={[colors.secondary[700], colors.secondary[500]]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={[styles.header, { paddingTop: insets.top + spacing.md }]}
-      >
-        <Animated.View
-          entering={FadeIn.duration(240)}
-          style={[styles.headerInner, { width: contentWidth }]}
-        >
+      <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
+        {/* The gradient paints the slab but does not lay it out. On the new
+            architecture LinearGradient does not grow to fit its children —
+            it measured its own padding only, and the greeting and stat row
+            rendered below it, outside the plum. A plain View does the
+            measuring; the gradient just fills whatever that View becomes. */}
+        <LinearGradient
+          colors={[colors.secondary[700], colors.secondary[500]]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={StyleSheet.absoluteFill}
+        />
+        <View style={[styles.headerInner, { width: contentWidth }]}>
           <View style={styles.topBar}>
             <View style={styles.greetingText}>
               <Text style={styles.greeting}>{t(greetingKey())}</Text>
@@ -234,8 +237,8 @@ export default function Home() {
               onPress={() => router.push('/hearts')}
             />
           </View>
-        </Animated.View>
-      </LinearGradient>
+        </View>
+      </View>
 
       <View style={[styles.body, { width: contentWidth }]}>
         {/* The one thing the screen is for. Everything else is a footnote. */}
@@ -562,6 +565,9 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 28,
     borderBottomRightRadius: 28,
     alignItems: 'center',
+    // The gradient is an absolutely-positioned child; without this it paints
+    // square corners past the rounded ones.
+    overflow: 'hidden',
   },
   headerInner: {
     paddingHorizontal: spacing.lg,

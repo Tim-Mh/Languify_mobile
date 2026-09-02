@@ -125,12 +125,17 @@ export default function Profile() {
         {/* The same plum gradient as Home's status slab, so the two screens
             read as one product rather than a card page and a chrome page. */}
         <Animated.View entering={FadeIn.duration(260)}>
-            <LinearGradient
+            <View style={styles.header}>
+              {/* The gradient paints this block but must not lay it out: on the
+                  new architecture LinearGradient does not grow to fit its
+                  children, so it collapses to its own padding and the content
+                  spills outside it. The View measures; the gradient fills it. */}
+              <LinearGradient
               colors={[colors.secondary[700], colors.secondary[500]]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
-              style={styles.header}
-            >
+                style={[StyleSheet.absoluteFill, { borderRadius: 26 }]}
+              />
               {/* The avatar is itself the way into the editor, as on the web,
                   with the badge on its corner saying so without a caption. */}
               <Pressable
@@ -205,7 +210,7 @@ export default function Profile() {
               <Text style={styles.email} numberOfLines={1}>
                 {user?.email}
               </Text>
-            </LinearGradient>
+            </View>
         </Animated.View>
       </QueryState>
 

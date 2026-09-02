@@ -298,19 +298,18 @@ export default function PlanManager({ plans = [], applePrices = {} }) {
         </View>
       ) : null}
 
-      {/* Family members ride on someone else's plan and have nothing to buy.
-          On iOS a plan is only offered when Apple prices it — Apple bills
-          there (guideline 3.1.1), and a product App Store Connect does not
-          know cannot be bought. */}
+      {/* Family members ride on someone else's plan and have nothing to buy. */}
       {!isFamilyMember
-        ? plans
-            .filter((plan) => !APPLE_IAP || applePrices[appleSubProductId(plan.key)])
-            .map((plan) => {
+        ? plans.map((plan) => {
             const Icon = PLAN_ICONS[plan.key] ?? Crown
             const isActive = activePlanKey === plan.key
-            const price = APPLE_IAP
-              ? applePrices[appleSubProductId(plan.key)]
-              : money(plan.amountCents)
+            // Apple's localized price on iOS, because Apple is what charges
+            // there. The catalog price stands in until StoreKit answers — it
+            // is the same amount, and hiding a plan that has no Apple price
+            // yet leaves the shop looking empty.
+            const price =
+              (APPLE_IAP ? applePrices[appleSubProductId(plan.key)] : null) ??
+              money(plan.amountCents)
 
             return (
               <View key={plan.key} style={[styles.card, isActive && styles.cardActive]}>

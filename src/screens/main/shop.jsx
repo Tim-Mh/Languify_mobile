@@ -53,9 +53,8 @@ export default function Shop() {
   const buyHearts = useRefillHearts()
   const restore = useRestoreApplePurchases()
 
-  // On iOS the price shown (and charged) is Apple's, localized; a product
-  // App Store Connect does not know has no price and is not offered. This
-  // hook also recovers purchases whose backend credit was interrupted.
+  // On iOS the price shown (and charged) is Apple's, localized. This hook
+  // also recovers purchases whose backend credit was interrupted.
   const applePricesQuery = useApplePrices(query.data)
   const applePrices = applePricesQuery.data ?? {}
 
@@ -134,18 +133,16 @@ export default function Shop() {
                 matching the refill rows on the Hearts screen. A full-width
                 stacked card per pack turned a five-item list into five screens
                 of scrolling, and the two screens sold the same things in two
-                different shapes.
-
-                On iOS a pack is only offered when Apple prices it — Apple
-                bills there (guideline 3.1.1), and a product App Store Connect
-                does not know cannot be bought. */}
-            {(catalog.gemPacks ?? [])
-              .filter((pack) => !APPLE_IAP || applePrices[appleGemsProductId(pack.key)])
-              .map((pack, index) => {
+                different shapes. */}
+            {(catalog.gemPacks ?? []).map((pack, index) => {
               const busy = buyGems.isPending && buyGems.variables?.key === pack.key
-              const price = APPLE_IAP
-                ? applePrices[appleGemsProductId(pack.key)]
-                : money(pack.amountCents)
+              // Apple's localized price on iOS, because Apple is what charges
+              // there. The catalog price stands in until StoreKit answers —
+              // it is the same amount, and hiding a pack that has no Apple
+              // price yet reads as a broken shop.
+              const price =
+                (APPLE_IAP ? applePrices[appleGemsProductId(pack.key)] : null) ??
+                money(pack.amountCents)
 
               return (
                 <Animated.View

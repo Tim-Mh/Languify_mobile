@@ -130,12 +130,17 @@ export default function Streak() {
         ]}
       >
         <Animated.View entering={FadeIn.duration(280)}>
-          <LinearGradient
+          <View style={styles.hero}>
+            {/* The gradient paints this block but must not lay it out: on the
+                new architecture LinearGradient does not grow to fit its
+                children, so it collapses to its own padding and the content
+                spills outside it. The View measures; the gradient fills it. */}
+            <LinearGradient
             colors={[colors.warning[400], colors.primary[500]]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={styles.hero}
-          >
+              style={[StyleSheet.absoluteFill, { borderRadius: radii.xl }]}
+            />
             <View style={styles.heroFlame}>
               <Flame size={size(34)} color={colors.white} strokeWidth={2.2} />
             </View>
@@ -148,7 +153,7 @@ export default function Streak() {
                 ? t('m_streak_keep')
                 : t('m_streak_start')}
             </Text>
-          </LinearGradient>
+          </View>
         </Animated.View>
 
         {target ? (

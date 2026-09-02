@@ -137,12 +137,17 @@ export default function ChapterPath() {
               return (
                 <View key={unit.id} style={styles.unit}>
                   {/* Unit banner, matching the web's gradient header card. */}
-                  <LinearGradient
+                  <View style={styles.unitHeader}>
+                    {/* The gradient paints this block but must not lay it out: on the
+                        new architecture LinearGradient does not grow to fit its
+                        children, so it collapses to its own padding and the content
+                        spills outside it. The View measures; the gradient fills it. */}
+                    <LinearGradient
                     colors={[colors.primary[500], colors.secondary[600]]}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
-                    style={styles.unitHeader}
-                  >
+                      style={[StyleSheet.absoluteFill, { borderRadius: radii.xl }]}
+                    />
                     <View style={styles.unitIcon}>
                       <BookOpen size={19} color={colors.white} strokeWidth={2.2} />
                     </View>
@@ -161,7 +166,7 @@ export default function ChapterPath() {
                         {t('units_unit_number', { n: unitIndex + 1 })}
                       </Text>
                     </View>
-                  </LinearGradient>
+                  </View>
 
                   {loading ? (
                     <View style={styles.unitLoading}>

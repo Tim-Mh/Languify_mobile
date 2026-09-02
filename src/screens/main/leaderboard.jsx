@@ -111,12 +111,17 @@ export default function Leaderboard() {
             <>
               {/* The banner carries the tier and the two facts that frame the
                   week: how long is left, and how many people you are up against. */}
-              <LinearGradient
+              <View style={styles.banner}>
+                {/* The gradient paints this block but must not lay it out: on the
+                    new architecture LinearGradient does not grow to fit its
+                    children, so it collapses to its own padding and the content
+                    spills outside it. The View measures; the gradient fills it. */}
+                <LinearGradient
                 colors={[colors.secondary[700], colors.primary[600]]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
-                style={styles.banner}
-              >
+                  style={[StyleSheet.absoluteFill, { borderRadius: 26 }]}
+                />
                 {art ? <Image source={art} style={styles.tierArt} resizeMode="contain" /> : null}
 
                 <Text style={[styles.tierName, { fontSize: size(24) }]} numberOfLines={1}>
@@ -139,7 +144,7 @@ export default function Leaderboard() {
                     </Text>
                   </View>
                 </View>
-              </LinearGradient>
+              </View>
 
               {league.tierChangeNotice ? (
                 <View style={styles.notice}>
