@@ -222,7 +222,15 @@ const soundCache = new Map()
 /** The player currently making noise, so the next tap can silence it. */
 let playing = null
 
+/** Counts taps, so a load that finishes late can tell it has been superseded. */
+let requestToken = 0
+
 function stopPlayback() {
+  // Any audio still loading was asked for before this, so it is stale now:
+  // stopping covers the fetch that has not arrived as well as the sound that
+  // is already playing.
+  requestToken += 1
+
   if (!playing) return
 
   try {
@@ -317,14 +325,17 @@ function playFromServer(text, languageCode) {
   stopPlayback()
 
   const url = speechUrl(text, languageCode)
+  // Which tap this is, taken after stopPlayback has invalidated the previous
+  // one. Checked again after the load, because a word that has to be fetched
+  // takes long enough for the learner to tap another one, and whichever tap is
+  // newest must win — comparing against "is anything playing" instead would let
+  // a slow first tap silence a fast second one.
+  const token = requestToken
 
   loadSound(url).then((sound) => {
-    if (!sound) return
+    if (!sound || token !== requestToken) return
 
-    // A newer tap may have started while this was loading; it owns the audio
-    // now, so this one is dropped rather than played over the top.
-    if (playing) return
-
+    stopPlayback()
     playing = sound
 
     // Cached players keep their playhead at the end of the last play, so a
