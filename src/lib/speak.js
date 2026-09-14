@@ -204,94 +204,214 @@ function speechUrl(text, languageCode) {
  */
 let serverSpeechWorks = null
 
-// One player at a time, so rapid taps replace each other rather than overlap —
-// the same reason Tts.stop() is called before every utterance. Network players
-// are created per URL and released on completion: keeping them would leak a
-// native audio session per distinct word, which is unbounded.
-let currentSound = null
+// Loaded players, keyed by URL, so a word is fetched from the network once and
+// replayed from memory afterwards.
+//
+// This is the whole reason a tap is fast. `new Sound(url)` downloads before it
+// can play, and the round trip to our server is the better part of two seconds
+// — so without this, every tap waited, including a second tap on a word just
+// heard. Prefetching fills this map while the learner is still reading, which
+// is what makes even the first tap immediate.
+//
+// Capped and evicted oldest-first: each entry holds a native player, and a
+// learner working through a long lesson would otherwise accumulate one per
+// distinct word with no bound.
+const MAX_CACHED_SOUNDS = 40
+const soundCache = new Map()
 
-function releaseCurrent() {
-  if (!currentSound) return
+/** The player currently making noise, so the next tap can silence it. */
+let playing = null
+
+function stopPlayback() {
+  if (!playing) return
+
   try {
-    currentSound.stop()
-    currentSound.release()
+    playing.stop()
   } catch {
-    // Already gone.
+    // Already stopped, or released by eviction.
   }
-  currentSound = null
+
+  playing = null
+}
+
+function remember(url, sound) {
+  soundCache.set(url, sound)
+
+  while (soundCache.size > MAX_CACHED_SOUNDS) {
+    const [oldestUrl, oldest] = soundCache.entries().next().value
+
+    soundCache.delete(oldestUrl)
+
+    if (oldest === playing) playing = null
+
+    try {
+      oldest.stop()
+      oldest.release()
+    } catch {
+      // Already gone.
+    }
+  }
+}
+
+/**
+ * A loaded player for this URL, from cache when we have one.
+ *
+ * Resolves null rather than rejecting: every caller's fallback is the same —
+ * stay silent — and a failed word must not take the lesson down with it.
+ */
+function loadSound(url) {
+  const cached = soundCache.get(url)
+
+  if (cached) {
+    // Re-inserted so the most recently used entry is the last to be evicted.
+    soundCache.delete(url)
+    soundCache.set(url, cached)
+
+    return Promise.resolve(cached)
+  }
+
+  return new Promise((resolve) => {
+    const sound = new Sound(url, null, (error) => {
+      if (error) {
+        // Could not load it at all: no engine on the server, or no network.
+        serverSpeechWorks = false
+
+        try {
+          sound.release()
+        } catch {
+          // Never allocated.
+        }
+
+        resolve(null)
+
+        return
+      }
+
+      serverSpeechWorks = true
+      remember(url, sound)
+      resolve(sound)
+    })
+  })
 }
 
 let categorySet = false
 
-function playFromServer(text, languageCode) {
+function ensureAudioCategory() {
   // iOS mutes the default category when the ringer switch is on silent, and a
   // pronunciation that goes quiet in a quiet room has lost the point. `sounds.js`
   // sets the same category for the effects; it is a static, idempotent call, and
   // relying on the effects having played first would be a race.
-  if (!categorySet) {
-    categorySet = true
-    try {
-      Sound.setCategory('Playback', true)
-    } catch {
-      // Android has no audio categories.
-    }
+  if (categorySet) return
+
+  categorySet = true
+
+  try {
+    Sound.setCategory('Playback', true)
+  } catch {
+    // Android has no audio categories.
   }
+}
 
-  releaseCurrent()
+function playFromServer(text, languageCode) {
+  ensureAudioCategory()
+  stopPlayback()
 
-  const sound = new Sound(speechUrl(text, languageCode), null, (error) => {
-    if (error) {
-      // Could not load it at all: no engine on the server, or no network.
-      serverSpeechWorks = false
-      try {
-        sound.release()
-      } catch {
-        // Never allocated.
-      }
-      if (currentSound === sound) currentSound = null
+  const url = speechUrl(text, languageCode)
 
-      return
-    }
+  loadSound(url).then((sound) => {
+    if (!sound) return
 
-    serverSpeechWorks = true
+    // A newer tap may have started while this was loading; it owns the audio
+    // now, so this one is dropped rather than played over the top.
+    if (playing) return
+
+    playing = sound
+
+    // Cached players keep their playhead at the end of the last play, so a
+    // replay has to rewind first or it finishes instantly and silently.
+    sound.setCurrentTime(0)
     sound.play(() => {
-      try {
-        sound.release()
-      } catch {
-        // Already released by a newer tap.
-      }
-      if (currentSound === sound) currentSound = null
+      if (playing === sound) playing = null
     })
   })
-
-  currentSound = sound
 }
 
 /**
- * Ask the backend to render a lesson's words before the learner taps any of
- * them.
+ * Load a lesson's words before the learner taps any of them.
  *
- * Only matters for the languages that go through the backend, which are the
- * ones the device has no voice for. The first request for a word is the slow
- * one — the server has to synthesise it — and every request after that is a
- * file read. Firing them while the learner is still reading the first question
- * means the tap itself never waits.
+ * For a language the backend speaks, this downloads each word into the player
+ * cache, so a tap plays from memory instead of waiting on the network. It is
+ * the difference between a tap that sounds instantly and one that waits the
+ * better part of two seconds.
+ *
+ * For a language the device speaks, there is nothing to download, but the
+ * engine still has to be told which language to use — a bridge call that
+ * otherwise lands on the first tap. Doing it here means that tap is free too.
+ *
+ * Loads a few at a time: a long lesson can hold dozens of distinct words, and
+ * allocating a native player for all of them at once is a lot of pressure for
+ * audio nobody has asked for yet.
  *
  * Deliberately fire-and-forget, and deliberately not awaited by the caller: a
  * word that fails to warm costs one slow tap, which is exactly what happened
  * before this existed.
  */
-export function prefetchSpeech(texts, languageCode) {
-  // A language the device can say itself never touches the backend, so there is
-  // nothing to warm.
-  if (!SPEECH_LOCALES[languageCode] || deviceHasVoice(languageCode)) return
+const PREFETCH_CONCURRENCY = 4
 
-  for (const text of new Set((texts ?? []).filter(Boolean).map(String))) {
-    // The response is thrown away on purpose. What matters is that the server
-    // has synthesised the file and put it on disk before the learner taps.
-    fetch(speechUrl(text, languageCode)).catch(() => {})
+export function prefetchSpeech(texts, languageCode) {
+  if (!SPEECH_LOCALES[languageCode]) return
+
+  // A language the device says itself never touches the backend. Warm the
+  // engine instead, so the first tap does not pay for the language switch.
+  if (deviceHasVoice(languageCode)) {
+    primeEngine(localeFor(languageCode))
+
+    return
   }
+
+  const queue = [...new Set((texts ?? []).filter(Boolean).map(String))]
+    // Anything already cached is a tap that is fast already.
+    .map((text) => speechUrl(text, languageCode))
+    .filter((url) => !soundCache.has(url))
+
+  const next = () => {
+    const url = queue.shift()
+
+    if (!url) return
+
+    loadSound(url).then(next, next)
+  }
+
+  for (let i = 0; i < PREFETCH_CONCURRENCY; i += 1) next()
 }
+
+/**
+ * Tells the engine which language to speak, ahead of the first utterance.
+ *
+ * Shared by `prefetchSpeech` and `speak` so the language is only ever set once
+ * per lesson, whichever of them gets there first.
+ */
+function primeEngine(locale) {
+  if (selectedLocale === locale || primingLocale === locale) return Promise.resolve(false)
+
+  primingLocale = locale
+
+  return ready
+    .then(() => Tts.setDefaultLanguage(locale))
+    .then(() => {
+      selectedLocale = locale
+      primingLocale = null
+
+      return true
+    })
+    .catch(() => {
+      primingLocale = null
+
+      return false
+    })
+}
+
+let primingLocale = null
 
 export function speak(text, languageCode) {
   if (!text) return
@@ -310,32 +430,33 @@ export function speak(text, languageCode) {
   }
 
   const say = () => {
-    releaseCurrent()
+    stopPlayback()
     Tts.stop()
     Tts.speak(utterance)
   }
 
+  // Already on this language — the common case once a lesson is under way, and
+  // the one that has to stay free of bridge round trips.
   if (selectedLocale === locale) {
     say()
     return
   }
 
-  ready
-    .then(() => Tts.setDefaultLanguage(locale))
-    .then(() => {
-      selectedLocale = locale
+  primeEngine(locale).then((ok) => {
+    if (ok) {
       say()
-    })
-    .catch(() => {
-      // The engine rejected the language after all, so take the same route as a
-      // device with no voice for it. `selectedLocale` stays as it was, so the
-      // next tap tries the engine again rather than assuming it was set.
-      playFromServer(utterance, languageCode)
-    })
+      return
+    }
+
+    // The engine rejected the language after all, so take the same route as a
+    // device with no voice for it. `selectedLocale` stays as it was, so the
+    // next tap tries the engine again rather than assuming it was set.
+    playFromServer(utterance, languageCode)
+  })
 }
 
 export function stopSpeaking() {
-  releaseCurrent()
+  stopPlayback()
 
   try {
     Tts.stop()
