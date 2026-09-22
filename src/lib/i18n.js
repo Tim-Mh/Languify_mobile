@@ -23,6 +23,13 @@ import { useAuth } from '../auth/AuthContext'
 
 const STRINGS = {
   en: {
+    // End-of-week league result modal.
+    m_league_week_title: "Your week is in",
+    m_league_week_rank: "You finished #{rank} of {size}",
+    m_league_week_points_up: "+{points} league points",
+    m_league_week_points_down: "{points} league points",
+    m_league_week_no_gems: "Finish in the top half next week to earn gems.",
+    m_league_week_close: "Continue",
     m_heart_one: "Heart",
     m_hearts_plan_includes: "Your plan includes them, so you never run out.",
     m_league_tier_bronze: "Bronze",
@@ -1186,6 +1193,19 @@ const STRINGS = {
     m_trivia_quit_a11y: 'Quit round',
   },
   fr: {
+    // Apple IAP. These arrived with the StoreKit work in English only;
+    // Restore Purchases is a control Apple requires to be present.
+    m_shop_restore: "Restaurer les achats",
+    m_shop_restored: "Vos achats sont de retour.",
+    m_shop_nothing_restore: "Aucun achat à restaurer.",
+    m_plan_manage_appstore: "Gérer dans l'App Store",
+    // End-of-week league result modal.
+    m_league_week_title: "Votre semaine est terminée",
+    m_league_week_rank: "Vous terminez #{rank} sur {size}",
+    m_league_week_points_up: "+{points} points de ligue",
+    m_league_week_points_down: "{points} points de ligue",
+    m_league_week_no_gems: "Terminez dans la première moitié la semaine prochaine pour gagner des gemmes.",
+    m_league_week_close: "Continuer",
     m_heart_one: "Cœur",
     m_hearts_plan_includes: "Votre formule les inclut : vous n’en manquerez jamais.",
     m_league_tier_bronze: "Bronze",
@@ -2346,6 +2366,19 @@ const STRINGS = {
     m_trivia_quit_a11y: 'Quitter la manche',
   },
   es: {
+    // Apple IAP. These arrived with the StoreKit work in English only;
+    // Restore Purchases is a control Apple requires to be present.
+    m_shop_restore: "Restaurar compras",
+    m_shop_restored: "Tus compras han vuelto.",
+    m_shop_nothing_restore: "No hay compras que restaurar.",
+    m_plan_manage_appstore: "Gestionar en la App Store",
+    // End-of-week league result modal.
+    m_league_week_title: "Tu semana ha terminado",
+    m_league_week_rank: "Terminaste #{rank} de {size}",
+    m_league_week_points_up: "+{points} puntos de liga",
+    m_league_week_points_down: "{points} puntos de liga",
+    m_league_week_no_gems: "Termina en la mitad superior la próxima semana para ganar gemas.",
+    m_league_week_close: "Continuar",
     m_heart_one: "Corazón",
     m_hearts_plan_includes: "Tu plan los incluye, así que nunca te quedas sin ellos.",
     m_league_tier_bronze: "Bronce",
@@ -3505,6 +3538,19 @@ const STRINGS = {
     m_trivia_quit_a11y: 'Salir de la ronda',
   },
   de: {
+    // Apple IAP. These arrived with the StoreKit work in English only;
+    // Restore Purchases is a control Apple requires to be present.
+    m_shop_restore: "Käufe wiederherstellen",
+    m_shop_restored: "Deine Käufe sind zurück.",
+    m_shop_nothing_restore: "Keine Käufe zum Wiederherstellen.",
+    m_plan_manage_appstore: "Im App Store verwalten",
+    // End-of-week league result modal.
+    m_league_week_title: "Deine Woche ist vorbei",
+    m_league_week_rank: "Du wurdest #{rank} von {size}",
+    m_league_week_points_up: "+{points} Liga-Punkte",
+    m_league_week_points_down: "{points} Liga-Punkte",
+    m_league_week_no_gems: "Lande nächste Woche in der oberen Hälfte, um Edelsteine zu verdienen.",
+    m_league_week_close: "Weiter",
     m_heart_one: "Herz",
     m_hearts_plan_includes: "Dein Tarif enthält sie, dir gehen sie also nie aus.",
     m_league_tier_bronze: "Bronze",
@@ -4665,6 +4711,19 @@ const STRINGS = {
     m_trivia_quit_a11y: 'Runde verlassen',
   },
   ja: {
+    // Apple IAP. These arrived with the StoreKit work in English only;
+    // Restore Purchases is a control Apple requires to be present.
+    m_shop_restore: "購入を復元",
+    m_shop_restored: "購入が復元されました。",
+    m_shop_nothing_restore: "復元する購入はありません。",
+    m_plan_manage_appstore: "App Store で管理",
+    // End-of-week league result modal.
+    m_league_week_title: "今週の結果",
+    m_league_week_rank: "{size}人中 {rank}位",
+    m_league_week_points_up: "リーグポイント +{points}",
+    m_league_week_points_down: "リーグポイント {points}",
+    m_league_week_no_gems: "来週は上位半分に入るとジェムがもらえます。",
+    m_league_week_close: "続ける",
     m_heart_one: "ハート",
     m_hearts_plan_includes: "ご利用中のプランに含まれているので、なくなることはありません。",
     m_league_tier_bronze: "ブロンズ",
@@ -5823,6 +5882,19 @@ const STRINGS = {
     m_trivia_quit_a11y: 'ラウンドを終了',
   },
   ko: {
+    // Apple IAP. These arrived with the StoreKit work in English only;
+    // Restore Purchases is a control Apple requires to be present.
+    m_shop_restore: "구매 복원",
+    m_shop_restored: "구매 내역이 복원되었습니다.",
+    m_shop_nothing_restore: "복원할 구매 내역이 없습니다.",
+    m_plan_manage_appstore: "App Store에서 관리",
+    // End-of-week league result modal.
+    m_league_week_title: "이번 주 결과",
+    m_league_week_rank: "{size}명 중 {rank}위",
+    m_league_week_points_up: "리그 포인트 +{points}",
+    m_league_week_points_down: "리그 포인트 {points}",
+    m_league_week_no_gems: "다음 주에 상위 절반에 들면 젬을 받을 수 있어요.",
+    m_league_week_close: "계속하기",
     m_heart_one: "하트",
     m_hearts_plan_includes: "현재 플랜에 포함되어 있어 떨어질 일이 없습니다.",
     m_league_tier_bronze: "브론즈",
@@ -6981,6 +7053,19 @@ const STRINGS = {
     m_trivia_quit_a11y: '라운드 나가기',
   },
   tr: {
+    // Apple IAP. These arrived with the StoreKit work in English only;
+    // Restore Purchases is a control Apple requires to be present.
+    m_shop_restore: "Satın alımları geri yükle",
+    m_shop_restored: "Satın alımların geri geldi.",
+    m_shop_nothing_restore: "Geri yüklenecek satın alım yok.",
+    m_plan_manage_appstore: "App Store'da yönet",
+    // End-of-week league result modal.
+    m_league_week_title: "Haftan tamamlandı",
+    m_league_week_rank: "{size} kişi içinde {rank}. oldun",
+    m_league_week_points_up: "+{points} lig puanı",
+    m_league_week_points_down: "{points} lig puanı",
+    m_league_week_no_gems: "Mücevher kazanmak için gelecek hafta ilk yarıda bitir.",
+    m_league_week_close: "Devam et",
     m_heart_one: "Kalp",
     m_hearts_plan_includes: "Planınıza dahil, bu yüzden hiç bitmez.",
     m_league_tier_bronze: "Bronz",
@@ -8129,6 +8214,19 @@ const STRINGS = {
     m_trivia_quit_a11y: 'Turdan çık',
   },
   ru: {
+    // Apple IAP. These arrived with the StoreKit work in English only;
+    // Restore Purchases is a control Apple requires to be present.
+    m_shop_restore: "Восстановить покупки",
+    m_shop_restored: "Ваши покупки восстановлены.",
+    m_shop_nothing_restore: "Нет покупок для восстановления.",
+    m_plan_manage_appstore: "Управлять в App Store",
+    // End-of-week league result modal.
+    m_league_week_title: "Ваша неделя завершена",
+    m_league_week_rank: "Вы заняли {rank}-е место из {size}",
+    m_league_week_points_up: "+{points} очков лиги",
+    m_league_week_points_down: "{points} очков лиги",
+    m_league_week_no_gems: "На следующей неделе финишируйте в верхней половине, чтобы получить самоцветы.",
+    m_league_week_close: "Продолжить",
     m_heart_one: 'Сердце',
     m_hearts_plan_includes: 'Ваш план включает их, поэтому они не закончатся.',
     m_league_tier_bronze: 'Бронза',
@@ -9256,6 +9354,19 @@ const STRINGS = {
     m_trivia_quit_a11y: 'Выйти из раунда',
   },
   ar: {
+    // Apple IAP. These arrived with the StoreKit work in English only;
+    // Restore Purchases is a control Apple requires to be present.
+    m_shop_restore: "استعادة المشتريات",
+    m_shop_restored: "تمت استعادة مشترياتك.",
+    m_shop_nothing_restore: "لا توجد مشتريات لاستعادتها.",
+    m_plan_manage_appstore: "الإدارة في App Store",
+    // End-of-week league result modal.
+    m_league_week_title: "انتهى أسبوعك",
+    m_league_week_rank: "حللت في المركز {rank} من {size}",
+    m_league_week_points_up: "‎+{points} نقطة دوري",
+    m_league_week_points_down: "{points} نقطة دوري",
+    m_league_week_no_gems: "أنهِ الأسبوع القادم في النصف الأعلى لتكسب الجواهر.",
+    m_league_week_close: "متابعة",
     m_heart_one: 'قلب',
     m_hearts_plan_includes: 'خطتك تشملها، لذا لن تنفد أبدا.',
     m_league_tier_bronze: 'برونزي',
@@ -10383,6 +10494,19 @@ const STRINGS = {
     m_trivia_quit_a11y: 'إنهاء الجولة',
   },
   az: {
+    // Apple IAP. These arrived with the StoreKit work in English only;
+    // Restore Purchases is a control Apple requires to be present.
+    m_shop_restore: "Alışları bərpa et",
+    m_shop_restored: "Alışların geri qayıtdı.",
+    m_shop_nothing_restore: "Bərpa ediləcək alış yoxdur.",
+    m_plan_manage_appstore: "App Store-da idarə et",
+    // End-of-week league result modal.
+    m_league_week_title: "Həftən başa çatdı",
+    m_league_week_rank: "{size} nəfər arasında {rank}-ci oldun",
+    m_league_week_points_up: "+{points} liqa xalı",
+    m_league_week_points_down: "{points} liqa xalı",
+    m_league_week_no_gems: "Cəvahir qazanmaq üçün gələn həftə yuxarı yarıda bitir.",
+    m_league_week_close: "Davam et",
     m_heart_one: 'Ürək',
     m_hearts_plan_includes: 'Planınıza daxildir, ona görə heç vaxt bitmir.',
     m_league_tier_bronze: 'Bürünc',

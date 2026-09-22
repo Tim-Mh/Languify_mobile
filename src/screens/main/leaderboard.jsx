@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { Image, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { LinearGradient } from 'react-native-linear-gradient'
@@ -9,6 +10,7 @@ import Users from 'lucide-react-native/icons/users'
 
 import Avatar from '@/components/Avatar'
 import QueryState from '@/components/QueryState'
+import RewardModal from '@/components/RewardModal'
 import { LeagueSkeleton } from '@/components/Skeleton'
 import StateView from '@/components/StateView'
 import { TAB_BAR_OVERHANG } from '@/components/TabBar'
@@ -109,6 +111,10 @@ export default function Leaderboard() {
 
           return (
             <>
+              {/* What last week's rollover did. Renders nothing until there is
+                  a result to show. */}
+              <WeeklyResult result={league.weeklyResult} />
+
               {/* The banner carries the tier and the two facts that frame the
                   week: how long is left, and how many people you are up against. */}
               <View style={styles.banner}>
@@ -290,6 +296,56 @@ export default function Leaderboard() {
         }}
       </QueryState>
     </ScrollView>
+  )
+}
+
+
+/**
+ * Last week's league result, shown once.
+ *
+ * `result` is latched on arrival instead of being read straight from the
+ * query. The backend clears it the moment it is read, so the next refetch
+ * correctly returns null; rendering the prop directly would tear the modal
+ * down again a second after it appeared.
+ */
+function WeeklyResult({ result }) {
+  const t = useTranslate()
+  const [shown, setShown] = useState(null)
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    if (!result) return
+    setShown(result)
+    setVisible(true)
+  }, [result])
+
+  if (!shown) return null
+
+  const gained = shown.points > 0
+
+  return (
+    <RewardModal
+      visible={visible}
+      title={t('m_league_week_title')}
+      subtitle={t('m_league_week_rank', { rank: shown.rank, size: shown.size })}
+      rewards={[
+        {
+          kind: 'xp',
+          value: gained
+            ? t('m_league_week_points_up', { points: shown.points })
+            : t('m_league_week_points_down', { points: shown.points }),
+          label: '',
+        },
+        ...(shown.gems > 0
+          ? [{ kind: 'gems', value: `+${shown.gems}`, label: t('m_gems') }]
+          : []),
+      ]}
+      actionLabel={t('m_league_week_close')}
+      // Confetti for a week that went well only. Celebrating a demotion reads
+      // as sarcasm.
+      celebrate={gained}
+      onClose={() => setVisible(false)}
+    />
   )
 }
 

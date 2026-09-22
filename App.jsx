@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { StatusBar } from 'react-native'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
+import { ReducedMotionConfig, ReduceMotion } from 'react-native-reanimated'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 import { AuthProvider } from './src/auth/AuthContext'
@@ -47,6 +48,12 @@ export default function App() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: SPLASH_BACKGROUND }}>
+      {/* A11Y-05: follow the phone's own Reduce Motion setting. Reanimated
+          drives every screen transition and entering animation in the app,
+          and none of them read the setting on their own. `System` makes the
+          whole tree respect it, so a learner who has asked for less motion
+          gets the app without the movement rather than without the app. */}
+      <ReducedMotionConfig mode={ReduceMotion.System} />
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           {/* Inside SafeAreaProvider because the toast needs the top inset, and

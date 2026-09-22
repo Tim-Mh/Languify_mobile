@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Animated, Dimensions, Easing, StyleSheet, View } from 'react-native'
+import { AccessibilityInfo, Animated, Dimensions, Easing, StyleSheet, View } from 'react-native'
 
 import { colors } from '../theme'
 
@@ -148,6 +148,34 @@ function makePiece(index) {
 
 export default function Confetti({ count = 70 }) {
   /**
+   * A11Y-05. This is the one animation ReducedMotionConfig in App.jsx does
+   * NOT cover: it is driven by React Native's own `Animated`, not
+   * Reanimated, so it has to ask for itself.
+   *
+   * Seventy pieces flying across the whole screen is exactly the kind of
+   * large-area movement the setting exists to prevent. Null while the
+   * answer is still being fetched, and nothing is rendered until it
+   * arrives: a burst that starts and then disappears is worse than one
+   * that never starts.
+   */
+  const [reduceMotion, setReduceMotion] = useState(null)
+
+  useEffect(() => {
+    let alive = true
+
+    AccessibilityInfo.isReduceMotionEnabled()
+      .then((on) => alive && setReduceMotion(on))
+      .catch(() => alive && setReduceMotion(false))
+
+    const sub = AccessibilityInfo.addEventListener('reduceMotionChanged', setReduceMotion)
+
+    return () => {
+      alive = false
+      sub?.remove?.()
+    }
+  }, [])
+
+  /**
    * Seeded from the window rather than waiting for `onLayout`.
    *
    * Waiting was the third way this failed to appear: in this nesting —
@@ -166,7 +194,7 @@ export default function Confetti({ count = 70 }) {
   const pieces = useMemo(() => Array.from({ length: count }, (_, i) => makePiece(i)), [count])
 
   useEffect(() => {
-    if (!size) return undefined
+    if (!size || reduceMotion !== false) return undefined
 
     const animation = Animated.timing(clock, {
       toValue: 1,
@@ -180,7 +208,10 @@ export default function Confetti({ count = 70 }) {
 
     animation.start()
     return () => animation.stop()
-  }, [size, clock])
+  }, [size, clock, reduceMotion])
+
+  // Nothing at all while the answer is unknown (null) or the setting is on.
+  if (reduceMotion !== false) return null
 
   return (
     <View
