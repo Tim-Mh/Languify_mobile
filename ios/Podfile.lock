@@ -126,7 +126,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - NitroModules (0.37.1):
+  - NitroModules (0.36.5):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2850,7 +2850,7 @@ SPEC CHECKSUMS:
   hermes-engine: 0e2284629370a1b0d7a70a450bb514796b5187d5
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
   NitroIap: f6ee5faa9489be70a54f7d6fc0cd152953eba5be
-  NitroModules: 38f8754287858ff1294e43fd43f614a664e54050
+  NitroModules: 452230d9b63c6c3f59dd97eeaa27ec3449271d4a
   openiap: 253070b2afe71078a2cae63a2b8e282bdd44a059
   PromisesObjC: 752c3227f599e3467650e47ea36f433eeb10c273
   PromisesSwift: 217dea0fd5d2ad65222a109c48698add13cc1c5b
