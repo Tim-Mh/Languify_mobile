@@ -28,10 +28,10 @@ import {
   useLoseHeart,
   useRecordAttempt,
 } from '@/hooks/useLessons'
-import { useAds } from '@/hooks/useProfile'
+import { useAds, usePreloadLessonAd } from '@/hooks/useProfile'
 import { useSubscriptionStatus } from '@/hooks/useShop'
 import { HintProvider } from '@/components/HintBubble'
-import { peekIndex, preloadFrom, takeNext } from '@/lib/adRotation'
+import { isAdFree, LESSON_AD, lessonAdPool, takeNext } from '@/lib/adRotation'
 import { speakableTexts } from '@/lib/exercises'
 import { prefetchSpeech } from '@/lib/speak'
 import { useTranslate } from '@/lib/i18n'
@@ -131,10 +131,7 @@ function LessonPlayer({ id, chapterId }) {
   const total = exercises.length
   const current = queue?.[0]
 
-  // Every paid plan is ad-free, matching the web.
-  const adFree =
-    subscription?.subscription?.status === 'active' ||
-    subscription?.subscription?.status === 'trialing'
+  const adFree = isAdFree(subscription)
 
   /**
    * Warm the pronunciation of every word in this lesson while the learner is
@@ -152,36 +149,14 @@ function LessonPlayer({ id, chapterId }) {
   }, [exercises, learningCode])
 
   /**
-   * Choose the interstitial ad and pull its image, and the few after it, onto
-   * the device while the learner is still answering questions.
+   * Keep the next ad images downloading while the learner answers questions.
    *
-   * This used to happen when the lesson was banked, which meant the download
-   * started at the exact moment the ad had to appear. The mobile creatives are
-   * a couple of megabytes each, so on mobile data the learner watched an empty
-   * frame count down. A lesson takes minutes; the image has all of that time to
-   * arrive if it is asked for at the start.
-   *
-   * `Image.prefetch` puts it in the same native cache `<Image>` reads from, so
-   * the interstitial renders from disk rather than the network. A failure is
-   * ignored on purpose: it costs a slow ad, which must never hold up a lesson.
-   * Only this ad and the next few are fetched, never the whole list.
+   * The home and chapter screens have usually fetched them already; this
+   * covers a lesson opened straight from a notification. `Image.prefetch` puts
+   * them in the same native cache `<Image>` reads from, so the interstitial
+   * renders from disk rather than the network.
    */
-  useEffect(() => {
-    if (adFree || !adData || ad) return
-
-    // The mobile pool first: it holds the portrait creatives cut for a phone.
-    // The website's landscape pool is the fallback, so an admin who has not
-    // uploaded a mobile creative yet still gets an ad rather than silence.
-    const pool =
-      adData?.placements?.mobileLessonComplete?.length > 0
-        ? adData.placements.mobileLessonComplete
-        : adData?.placements?.lessonComplete
-
-    if (!pool?.length) return
-
-    preloadFrom(pool, peekIndex('lessonComplete', pool))
-    setAd(takeNext('lessonComplete', pool))
-  }, [adFree, adData, ad])
+  usePreloadLessonAd()
 
   useEffect(() => {
     if (exercises.length > 0 && queue === null) setQueue(exercises)
@@ -230,9 +205,9 @@ function LessonPlayer({ id, chapterId }) {
       { mistakes },
       {
         onSuccess: (result) => {
-          // The creative was chosen and its image downloaded while the learner
-          // was still answering — see the effect above — so there is nothing to
-          // wait for here.
+          // Chosen now rather than when the lesson opened, so the pick can
+          // favour an image that has finished downloading in the meantime.
+          if (!adFree) setAd(takeNext(LESSON_AD, lessonAdPool(adData)))
           setSummary(result)
         },
         onError: (error) => notify.error(error.message),

@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { ads as fetchAds } from '../api/ads'
@@ -6,8 +7,10 @@ import { league as fetchLeague } from '../api/league'
 import * as profileApi from '../api/profile'
 import { useAuth } from '../auth/AuthContext'
 import { useNotify } from '../components/NotificationProvider'
+import { isAdFree, LESSON_AD, lessonAdPool, peekIndex, preloadFrom } from '../lib/adRotation'
 import { useTranslate } from '../lib/i18n'
 import { queryKeys } from './keys'
+import { useSubscriptionStatus } from './useShop'
 
 /** The learner's weekly league cohort, ranked. */
 export function useLeague() {
@@ -30,6 +33,28 @@ export function useAds() {
     queryFn: fetchAds,
     staleTime: 30 * 60_000,
   })
+}
+
+/**
+ * Downloads the next lesson-complete ads onto the phone ahead of time.
+ *
+ * Mounted on the home and chapter screens as well as the lesson itself, so the
+ * ad list and its next few images are already on disk before a lesson even
+ * opens. Starting only when the lesson opened left a short lesson on a slow
+ * connection finishing before the image did. Waits for the subscription
+ * status, so a subscriber never downloads an ad they will not be shown.
+ */
+export function usePreloadLessonAd() {
+  const { data: subscription, isSuccess } = useSubscriptionStatus()
+  const { data: adData } = useAds()
+  const skip = !isSuccess || isAdFree(subscription)
+
+  useEffect(() => {
+    if (skip || !adData) return
+
+    const pool = lessonAdPool(adData)
+    preloadFrom(pool, peekIndex(LESSON_AD, pool))
+  }, [skip, adData])
 }
 
 /** Claims an earned badge. The reward lands in gems, XP and hearts. */

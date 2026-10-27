@@ -20,14 +20,52 @@ const pointers = new Map()
 /** URLs already handed to the native image cache. */
 const prefetched = new Set()
 
-/** The next ad from `pool`, never the same one twice in a row. */
+/** URLs whose download has finished, so they render from disk at once. */
+const ready = new Set()
+
+/** The placement key the lesson-complete interstitial plays from. */
+export const LESSON_AD = 'lessonComplete'
+
+/**
+ * The phone's lesson-complete pool: the portrait creatives cut for a phone
+ * first, the website's landscape ones as the fallback, so an admin who has not
+ * uploaded a mobile creative yet still gets an ad rather than silence.
+ */
+export function lessonAdPool(adData) {
+  const mobile = adData?.placements?.mobileLessonComplete
+
+  return mobile?.length > 0 ? mobile : (adData?.placements?.lessonComplete ?? [])
+}
+
+/** Every paid plan is ad-free, matching the web. */
+export function isAdFree(subscription) {
+  const status = subscription?.subscription?.status
+
+  return status === 'active' || status === 'trialing'
+}
+
+/**
+ * The next ad from `pool`, never the same one twice in a row.
+ *
+ * Prefers an ad whose image has already downloaded: of the next few in play
+ * order, the first one that is ready wins, so a slow connection never puts an
+ * empty frame on screen while a finished download sits one place further down
+ * the list. When none of them is ready yet, play order decides as usual.
+ */
 export function takeNext(placement, pool) {
   if (!pool?.length) return null
 
   const { index = 0, lastId = null } = pointers.get(placement) ?? {}
-  let next = index % pool.length
+  const start = index % pool.length
+  const candidates = []
 
-  if (pool.length > 1 && pool[next].id === lastId) next = (next + 1) % pool.length
+  for (let offset = 0; offset <= Math.min(PRELOAD_AHEAD, pool.length - 1); offset++) {
+    const at = (start + offset) % pool.length
+    if (pool.length > 1 && pool[at].id === lastId) continue
+    candidates.push(at)
+  }
+
+  const next = candidates.find((at) => ready.has(pool[at].url)) ?? candidates[0] ?? start
 
   pointers.set(placement, { index: next + 1, lastId: pool[next].id })
 
@@ -48,7 +86,9 @@ export function preloadFrom(pool, index) {
 
     if (url && !prefetched.has(url)) {
       prefetched.add(url)
-      Image.prefetch(url).catch(() => prefetched.delete(url))
+      Image.prefetch(url)
+        .then((ok) => (ok ? ready.add(url) : prefetched.delete(url)))
+        .catch(() => prefetched.delete(url))
     }
   }
 }

@@ -28,6 +28,7 @@ import StateView from '@/components/StateView'
 import { TAB_BAR_OVERHANG } from '@/components/TabBar'
 import { useAuth } from '@/auth/AuthContext'
 import { useChapters, useGameState } from '@/hooks/useGame'
+import { usePreloadLessonAd } from '@/hooks/useProfile'
 import { useChestStatus, useTodaysQuests } from '@/hooks/useRewards'
 import { characterAt, MASCOTS } from '@/lib/characters'
 import { chapterTitle, questTitle } from '@/lib/contentNames'
@@ -123,6 +124,8 @@ export default function Home() {
   const insets = useSafeAreaInsets()
   const router = useRouter()
   const { user } = useAuth()
+  // So the ad after the next lesson is already on the phone.
+  usePreloadLessonAd()
   const t = useTranslate()
   const { contentWidth, size, isCompact } = useLayout()
   // Pulled down over the plum header slab, where only a white spinner reads.

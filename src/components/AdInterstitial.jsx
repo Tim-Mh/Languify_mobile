@@ -103,6 +103,9 @@ export default function AdInterstitial({ ad, seconds = 10, onContinue }) {
             source={{ uri: ad.url }}
             style={styles.creative}
             resizeMode="contain"
+            // Android fades a loaded image in over 300ms by default. The image
+            // is already on disk, so show it the moment it is decoded.
+            fadeDuration={0}
             onLoad={({ nativeEvent }) => {
               if (__DEV__) {
                 const { width, height } = nativeEvent?.source ?? {}

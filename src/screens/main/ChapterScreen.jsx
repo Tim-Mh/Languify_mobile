@@ -22,6 +22,7 @@ import SnakePath, {
 } from '@/components/SnakePath'
 import { TAB_BAR_OVERHANG } from '@/components/TabBar'
 import { useLessonsForUnits, useUnits } from '@/hooks/useLessons'
+import { usePreloadLessonAd } from '@/hooks/useProfile'
 import { useAuth } from '@/auth/AuthContext'
 import { characterAt } from '@/lib/characters'
 import { useRefresh } from '@/lib/useRefresh'
@@ -47,6 +48,8 @@ export default function ChapterPath() {
   const notify = useNotify()
   const { id, title } = useLocalSearchParams()
   const { user } = useAuth()
+  // So the ad after the next lesson is already on the phone.
+  usePreloadLessonAd()
   const t = useTranslate()
   const { width, size } = useLayout()
 
