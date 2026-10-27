@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { BackHandler, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { BackHandler, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useFocusEffect, useLocalSearchParams, useRouter } from '@/navigation'
 import Animated, { FadeIn, FadeInRight, SlideInDown, ZoomIn } from 'react-native-reanimated'
@@ -31,7 +31,7 @@ import {
 import { useAds } from '@/hooks/useProfile'
 import { useSubscriptionStatus } from '@/hooks/useShop'
 import { HintProvider } from '@/components/HintBubble'
-import { nextAd } from '@/lib/adRotation'
+import { peekIndex, preloadFrom, takeNext } from '@/lib/adRotation'
 import { speakableTexts } from '@/lib/exercises'
 import { prefetchSpeech } from '@/lib/speak'
 import { useTranslate } from '@/lib/i18n'
@@ -152,8 +152,8 @@ function LessonPlayer({ id, chapterId }) {
   }, [exercises, learningCode])
 
   /**
-   * Choose the interstitial creative and pull its image onto the device while
-   * the learner is still answering questions.
+   * Choose the interstitial ad and pull its image, and the few after it, onto
+   * the device while the learner is still answering questions.
    *
    * This used to happen when the lesson was banked, which meant the download
    * started at the exact moment the ad had to appear. The mobile creatives are
@@ -164,11 +164,10 @@ function LessonPlayer({ id, chapterId }) {
    * `Image.prefetch` puts it in the same native cache `<Image>` reads from, so
    * the interstitial renders from disk rather than the network. A failure is
    * ignored on purpose: it costs a slow ad, which must never hold up a lesson.
+   * Only this ad and the next few are fetched, never the whole list.
    */
   useEffect(() => {
     if (adFree || !adData || ad) return
-
-    let cancelled = false
 
     // The mobile pool first: it holds the portrait creatives cut for a phone.
     // The website's landscape pool is the fallback, so an admin who has not
@@ -178,19 +177,10 @@ function LessonPlayer({ id, chapterId }) {
         ? adData.placements.mobileLessonComplete
         : adData?.placements?.lessonComplete
 
-    nextAd(pool)
-      .then((creative) => {
-        if (cancelled || !creative) return
+    if (!pool?.length) return
 
-        setAd(creative)
-
-        if (creative.url) Image.prefetch(creative.url).catch(() => {})
-      })
-      .catch(() => {})
-
-    return () => {
-      cancelled = true
-    }
+    preloadFrom(pool, peekIndex('lessonComplete', pool))
+    setAd(takeNext('lessonComplete', pool))
   }, [adFree, adData, ad])
 
   useEffect(() => {

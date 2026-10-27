@@ -1,17 +1,18 @@
 import api, { reachableUrl } from './client'
 
 /**
- * The admin-managed creative pools, grouped by placement:
+ * The ads to show, grouped by placement:
  *
- *   { placements: { homePrimary: [], homeSecondary: [], lessonComplete: [] },
- *     settings: { interstitialSeconds } }
+ *   { placements: { homeSidebar: [], lessonComplete: [],
+ *     mobileLessonComplete: [] }, settings: { interstitialSeconds, sidebarSeconds } }
  *
- * Each creative is `{ id, url, productName, targetUrl }` and arrives in the
- * order the admin put them in. Every placement key is always present, empty
- * included, so a caller never has to guard for a missing one.
+ * Each ad is `{ id, url, productName, targetUrl, alt }`, and each list is
+ * already in play order: products alternate and the order is reshuffled on
+ * every request. Every placement key is always present, empty included, so a
+ * caller never has to guard for a missing one. Admins get empty lists.
  *
- * The app only uses `lessonComplete` — the two home slots are a web-sidebar
- * layout that has no equivalent on a phone.
+ * The app uses `mobileLessonComplete`, falling back to `lessonComplete`. The
+ * home sidebar is a website layout that has no equivalent on a phone.
  *
  * Image URLs are rewritten on the way in. The backend builds them from
  * `APP_URL`, and a development `APP_URL` of `http://localhost` names the phone
@@ -29,4 +30,16 @@ export function ads() {
       ]),
     ),
   }))
+}
+
+/**
+ * View and click pings. Fire-and-forget: an ad never waits on them and a
+ * failure is never shown to the learner.
+ */
+export function recordAdView(id) {
+  api.post(`/ads/${id}/view`).catch(() => {})
+}
+
+export function recordAdClick(id) {
+  api.post(`/ads/${id}/click`).catch(() => {})
 }

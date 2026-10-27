@@ -4,6 +4,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import ImageOff from 'lucide-react-native/icons/image-off'
 
 import Button from './Button'
+import { recordAdClick, recordAdView } from '../api/ads'
+import { safeAdUrl } from '../lib/adRotation'
 import { openInAppBrowser } from '../lib/browser'
 import { useTranslate } from '../lib/i18n'
 import { useLayout } from '../lib/responsive'
@@ -43,11 +45,18 @@ export default function AdInterstitial({ ad, seconds = 10, onContinue }) {
     return () => clearTimeout(timer)
   }, [remaining])
 
+  // One view per ad shown, recorded when the interstitial appears.
+  useEffect(() => {
+    if (ad?.id) recordAdView(ad.id)
+  }, [ad?.id])
+
   const openTarget = () => {
-    if (!ad?.targetUrl) return
+    const url = safeAdUrl(ad?.targetUrl)
+    if (!url) return
+    recordAdClick(ad.id)
     // In-app browser rather than a hand-off to Chrome: the learner is mid-flow
     // and has a lesson path still waiting behind this.
-    openInAppBrowser(ad.targetUrl)
+    openInAppBrowser(url)
   }
 
   return (

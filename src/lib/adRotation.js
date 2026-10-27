@@ -1,56 +1,66 @@
-import { getSecureItem, setSecureItem } from './secureStorage'
+import { Image } from 'react-native'
 
 /**
- * Which creative the next lesson-complete interstitial should show.
+ * Which ad the next lesson-complete interstitial shows, and which images to
+ * download ahead of time.
  *
- * The pool is stepped through in order rather than sampled at random, so the
- * first lesson you finish shows creative #1, the second shows #2, and so on,
- * wrapping at the end — same rule as the web's `lp_ad_interstitial_index`. An
- * advertiser who bought a slot gets shown; random picking would let one creative
- * repeat three times while another never appeared.
- *
- * Kept in the same store as the auth token because it is the only persistent
- * key/value store this project has (there is no AsyncStorage dependency, and
- * adding one for a counter is not worth the install). The value is not a secret;
- * it just happens to live somewhere secure.
+ * The server sends the ads already in play order: products alternate and the
+ * order is reshuffled on every request, so there is nothing to persist on the
+ * device. The app plays the list from the top for as long as it has it, one
+ * ad per finished lesson, and a fresh launch fetches a freshly shuffled list.
+ * Same rule as the website's `lib/adPlayback.js`.
  */
-const INDEX_KEY = 'languify.ads.interstitialIndex'
 
-/** Mirrors session.js: avoids a store round trip on every read after the first. */
-let cached
+/** How many ads after the current one to download ahead of time. */
+const PRELOAD_AHEAD = 3
 
-async function read() {
-  if (cached !== undefined) return cached
+/** Where each placement has got to in its play order, for this launch. */
+const pointers = new Map()
 
-  const raw = await getSecureItem(INDEX_KEY)
-  cached = Number.parseInt(raw ?? '0', 10) || 0
+/** URLs already handed to the native image cache. */
+const prefetched = new Set()
 
-  return cached
-}
-
-async function write(value) {
-  // A failed write only costs this device its place in the rotation, so the
-  // store swallowing it is the behaviour we want here.
-  cached = value
-
-  await setSecureItem(INDEX_KEY, String(value))
-}
-
-/**
- * The next creative from `pool`, advancing the stored position.
- *
- * Returns null for an empty pool, which is the normal state until an admin
- * assigns something to the lessonComplete placement.
- */
-export async function nextAd(pool) {
+/** The next ad from `pool`, never the same one twice in a row. */
+export function takeNext(placement, pool) {
   if (!pool?.length) return null
 
-  const stored = await read()
-  // Modulo twice: the pool can shrink between sessions, and a stored index that
-  // is now out of range must still land somewhere real.
-  const index = ((stored % pool.length) + pool.length) % pool.length
+  const { index = 0, lastId = null } = pointers.get(placement) ?? {}
+  let next = index % pool.length
 
-  await write((index + 1) % pool.length)
+  if (pool.length > 1 && pool[next].id === lastId) next = (next + 1) % pool.length
 
-  return pool[index]
+  pointers.set(placement, { index: next + 1, lastId: pool[next].id })
+
+  return pool[next]
+}
+
+/**
+ * Pulls the ad at `index` and the few after it into the native image cache,
+ * so the interstitial renders from disk. Never the whole list: a session only
+ * downloads the handful of images it will actually show. A failed prefetch
+ * only costs a slower ad, so it is ignored.
+ */
+export function preloadFrom(pool, index) {
+  if (!pool?.length) return
+
+  for (let offset = 0; offset <= PRELOAD_AHEAD; offset++) {
+    const url = pool[(index + offset) % pool.length]?.url
+
+    if (url && !prefetched.has(url)) {
+      prefetched.add(url)
+      Image.prefetch(url).catch(() => prefetched.delete(url))
+    }
+  }
+}
+
+/** Where the next `takeNext()` call for this placement will start. */
+export function peekIndex(placement, pool) {
+  if (!pool?.length) return 0
+
+  return (pointers.get(placement)?.index ?? 0) % pool.length
+}
+
+/** Only http and https links are ever opened from an ad. */
+export function safeAdUrl(url) {
+  return typeof url === 'string' && /^https?:\/\//i.test(url) ? url : null
 }
