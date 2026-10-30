@@ -70,15 +70,15 @@ export default function App() {
                     screen started it, and inside NotificationProvider so a
                     toast fired when it closes still lands on top. */}
                 <CheckoutProvider>
-                  {/* Dark glyphs on the pale brand surface. `translucent` with
-                      a transparent background is what lets a screen's own
-                      gradient run up behind the status bar, which several of
-                      them do. */}
-                  <StatusBar
-                    barStyle="dark-content"
-                    backgroundColor="transparent"
-                    translucent
-                  />
+                  {/* Dark glyphs on the pale brand surface.
+                      No `backgroundColor` and no `translucent`: the app is
+                      edge-to-edge (`edgeToEdgeEnabled` in gradle.properties),
+                      so the status bar is already transparent and already
+                      drawn behind, which is what lets a screen's own gradient
+                      run up into it. Setting them anyway reached
+                      Window.setStatusBarColor, deprecated in Android 15 and
+                      reported as such by Play, to get what was already true. */}
+                  <StatusBar barStyle="dark-content" />
                   <RootNavigator />
                 </CheckoutProvider>
               </PushProvider>
